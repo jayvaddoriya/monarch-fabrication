@@ -108,7 +108,7 @@ export const COMPANY_CONFIG = {
       whatsappNumberOnly: "919925625051",
       bio: "Guiding Monarch Fabrication with decades of industry wisdom, uncompromised ethical standards, and dedication to long-lasting structural strength.",
       specialization: "Executive Leadership & Client Advisory",
-      image: "/images/owner-1.jpg",
+      image: "/images/owners/manharbhai-patel.jpg",
     },
     {
       id: "owner-2",
@@ -122,7 +122,7 @@ export const COMPANY_CONFIG = {
       whatsappNumberOnly: "918153073266",
       bio: "Leads client relations, drawing evaluations, and rapid quotation responses. Dedicated to bringing clients' custom ideas into reality.",
       specialization: "Customer Inquiries, Quoting & Design Scoping",
-      image: "/images/owner-2.jpg",
+      image: "/images/owners/darshan-patel.jpg",
     },
     {
       id: "owner-3",
@@ -136,7 +136,7 @@ export const COMPANY_CONFIG = {
       whatsappNumberOnly: "919773163740",
       bio: "Directs workshop welding accuracy, surface finishing, and safe site mounting to guarantee plumb fit and architectural durability.",
       specialization: "Workshop Fabrication & Site Installation",
-      image: "/images/owner-3.jpg",
+      image: "/images/owners/jay-patel.jpg",
     },
   ] as OwnerProfile[],
 
