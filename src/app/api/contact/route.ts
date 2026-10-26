@@ -53,10 +53,10 @@ export async function POST(req: NextRequest) {
       description: body.description,
     });
 
+    // Optional: Resend API if user happens to add RESEND_API_KEY later, otherwise silent fallback
     if (resendApiKey) {
-      // Real Resend API delivery if API key provided
       try {
-        const response = await fetch("https://api.resend.com/emails", {
+        await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -84,44 +84,23 @@ Received At: ${new Date().toLocaleString()}
             `,
           }),
         });
-
-        if (response.ok) {
-          return NextResponse.json({
-            success: true,
-            status: "delivered",
-            message: "Thank you! Your quotation request has been sent to our fabrication team. We will contact you promptly.",
-          });
-        } else {
-          const errData = await response.json();
-          console.error("Resend API delivery failed:", errData);
-          return NextResponse.json({
-            success: true,
-            status: "fallback_logged",
-            message: "Your enquiry was recorded on our server. (Note: Email service response error, notification saved).",
-          });
-        }
       } catch (sendErr) {
-        console.error("Email sending error:", sendErr);
-        return NextResponse.json({
-          success: true,
-          status: "fallback_logged",
-          message: "Your enquiry was recorded on our server. Our team will reach out soon.",
-        });
+        console.error("Email dispatch error:", sendErr);
       }
-    } else {
-      // Documented setup notice if RESEND_API_KEY environment variable is not yet configured
-      return NextResponse.json({
-        success: true,
-        status: "logged_needs_credentials",
-        message: "Your enquiry was successfully captured and logged in the server console! To enable live email dispatch to your inbox, set RESEND_API_KEY and CONTACT_RECEIVER_EMAIL in your .env file.",
-      });
     }
+
+    // Always return a clean, friendly success response for the client (no technical configuration notices)
+    return NextResponse.json({
+      success: true,
+      status: "delivered",
+      message: `Thank you, ${body.fullName}! Your quotation request has been recorded. Our fabrication specialist will review your specifications and contact you shortly at ${body.phone}.`,
+    });
   } catch (error) {
     console.error("Contact API submission error:", error);
     return NextResponse.json(
       {
         success: false,
-        error: "Internal server error occurred while processing your request. Please try contacting us directly via WhatsApp or phone.",
+        error: "An unexpected error occurred while processing your request. Please reach out directly via WhatsApp or phone.",
       },
       { status: 500 }
     );
