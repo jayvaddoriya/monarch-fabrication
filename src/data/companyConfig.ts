@@ -83,9 +83,14 @@ export const COMPANY_CONFIG = {
     whatsapp: "+91 81530 73266",
     whatsappNumberOnly: "918153073266",
 
-    // Email Addresses
-    email: "contact@monarchfabrication.com",
-    quoteEmail: "quotation@monarchfabrication.com",
+    // Official Email Address
+    email: "monarchfab2017@gmail.com",
+    quoteEmail: "monarchfab2017@gmail.com",
+
+    // Official GSTIN & State Compliance Details (From Registration)
+    gstin: "24ABSFM1732G1Z9",
+    stateName: "GUJARAT",
+    stateCode: "024",
 
     address: {
       street: "Shivay Compound, Sardar Chowk",

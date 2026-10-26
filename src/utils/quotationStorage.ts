@@ -1,4 +1,5 @@
-import { Quotation, QuotationItem, QuotationFormData } from "@/types/quotation";
+import { Quotation, QuotationItem, QuotationFormData, DocumentType } from "@/types/quotation";
+import { COMPANY_CONFIG } from "@/data/companyConfig";
 
 const STORAGE_KEY = "monarch_quotations_v1";
 
@@ -113,12 +114,13 @@ export function formatDisplayDate(dateStr: string): string {
   }
 }
 
-// Calculate all quotation totals accurately
+// Calculate all quotation / bill totals accurately
 export function calculateTotals(
   items: QuotationItem[],
   discountType: "percentage" | "fixed",
   discountValue: number,
-  gstRate: number
+  gstRate: number,
+  gstType: "intra" | "inter" = "intra"
 ) {
   const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.rate), 0);
 
@@ -133,30 +135,100 @@ export function calculateTotals(
   }
 
   const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const gstAmount = Math.round((taxableAmount * Math.max(0, gstRate)) / 100);
+
+  let cgstAmount = 0;
+  let sgstAmount = 0;
+  let igstAmount = 0;
+
+  if (gstRate > 0) {
+    if (gstType === "intra") {
+      const halfRate = gstRate / 2;
+      cgstAmount = Math.round((taxableAmount * halfRate) / 100);
+      sgstAmount = Math.round((taxableAmount * halfRate) / 100);
+    } else {
+      igstAmount = Math.round((taxableAmount * gstRate) / 100);
+    }
+  }
+
+  const gstAmount = cgstAmount + sgstAmount + igstAmount;
   const grandTotal = taxableAmount + gstAmount;
 
   return {
     subtotal,
     discountAmount,
+    taxableAmount,
+    cgstAmount,
+    sgstAmount,
+    igstAmount,
     gstAmount,
     grandTotal,
   };
 }
 
-// Initial seed quotations for first time admin load
+// Initial seed records for first time admin load (1 Quotation + 1 GST Tax Invoice)
 const SEED_QUOTATIONS: Quotation[] = [
   {
+    id: "seed-inv-001",
+    documentType: "bill",
+    quotationNumber: "MF-INV-2026-001",
+    date: new Date().toISOString().split("T")[0],
+    validUntil: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
+    customerName: "Radhe Krishna Textile Mills Pvt Ltd",
+    customerPhone: "+91 98251 44556",
+    customerLocation: "Plot 104, Sachin GIDC Industrial Area, Surat, Gujarat",
+    customerGstin: "24AAACR1234F1Z8",
+    customerState: "GUJARAT (024)",
+    items: [
+      {
+        id: "item-1",
+        partName: "Mild Steel (MS) Heavy Structural Canopy Shed & Pipe Framework",
+        sizeDimension: "40ft Length × 25ft Span (Total 1000 Sq.Ft)",
+        hsnSacCode: "7308",
+        quantity: 1000,
+        rate: 180,
+        amount: 180000,
+      },
+      {
+        id: "item-2",
+        partName: "SS-304 Heavy Duty Safety Handrails for Factory Walkway",
+        sizeDimension: "60 Running Feet, 3.5ft Height (50mm Top Pipe)",
+        hsnSacCode: "7308",
+        quantity: 60,
+        rate: 1650,
+        amount: 99000,
+      },
+    ],
+    subtotal: 279000,
+    discountType: "fixed",
+    discountValue: 4000,
+    discountAmount: 4000,
+    taxableAmount: 275000,
+    gstRate: 18,
+    gstType: "intra",
+    cgstAmount: 24750,
+    sgstAmount: 24750,
+    igstAmount: 0,
+    gstAmount: 49500,
+    grandTotal: 324500,
+    notes:
+      "1. Tax Invoice subject to Surat jurisdiction.\n2. Goods once sold will not be taken back or exchanged.\n3. Payment strictly due within 15 days of invoice date.\n4. Certified that the particulars given above are true and correct.",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
     id: "seed-qt-001",
+    documentType: "quotation",
     quotationNumber: "MF-QT-2026-001",
     date: new Date().toISOString().split("T")[0],
     validUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
     customerName: "Rahul Sharma",
     customerPhone: "+91 98251 12345",
-    customerLocation: "Villa 14, Palm Residency, Ahmedabad",
+    customerLocation: "Villa 14, Palm Residency, Surat, Gujarat",
+    customerGstin: "",
+    customerState: "GUJARAT (024)",
     items: [
       {
-        id: "item-1",
+        id: "item-3",
         partName: "Stainless Steel SS-304 Balcony Railing with 12mm Toughened Glass",
         sizeDimension: "48 Running Feet, 3.5ft Height",
         quantity: 48,
@@ -164,7 +236,7 @@ const SEED_QUOTATIONS: Quotation[] = [
         amount: 88800,
       },
       {
-        id: "item-2",
+        id: "item-4",
         partName: "SS-304 Staircase Handrail with Heavy Duty Balusters",
         sizeDimension: "32 Running Feet, 3ft Height",
         quantity: 32,
@@ -176,55 +248,22 @@ const SEED_QUOTATIONS: Quotation[] = [
     discountType: "fixed",
     discountValue: 3200,
     discountAmount: 3200,
+    taxableAmount: 132000,
     gstRate: 18,
+    gstType: "intra",
+    cgstAmount: 11880,
+    sgstAmount: 11880,
+    igstAmount: 0,
     gstAmount: 23760,
     grandTotal: 155760,
     notes:
-      "1. Material Grade: Premium SS-304 with Mirror Finish.\n2. 50% advance along with work order, 50% upon successful installation.\n3. Complete site installation, buffing, and high-tensile anchor fasteners included.\n4. Quotation valid for 30 days from date of issue.",
+      "1. Material Grade: Premium SS-304 with Mirror Finish.\n2. 50% advance along with work order, 50% upon successful installation.\n3. Complete site installation, buffing, and anchor fasteners included.\n4. Quotation valid for 30 days from date of issue.",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  {
-    id: "seed-qt-002",
-    quotationNumber: "MF-QT-2026-002",
-    date: new Date(Date.now() - 86400000).toISOString().split("T")[0],
-    validUntil: new Date(Date.now() + 29 * 86400000).toISOString().split("T")[0],
-    customerName: "Patel Agro Mills & Warehouse",
-    customerPhone: "+91 99240 55678",
-    customerLocation: "Plot 88, GIDC Industrial Estate, Gujarat",
-    items: [
-      {
-        id: "item-3",
-        partName: "Mild Steel (MS) Heavy Duty Sliding Factory Gate with Anti-Rust Primer",
-        sizeDimension: "24ft Width × 8ft Height (Box Section 75×75mm)",
-        quantity: 1,
-        rate: 68000,
-        amount: 68000,
-      },
-      {
-        id: "item-4",
-        partName: "Structural MS Spiral Fire Staircase with Checkered Plate Steps",
-        sizeDimension: "2 Floors (22ft Total Vertical Rise)",
-        quantity: 1,
-        rate: 94000,
-        amount: 94000,
-      },
-    ],
-    subtotal: 162000,
-    discountType: "percentage",
-    discountValue: 5,
-    discountAmount: 8100,
-    gstRate: 18,
-    gstAmount: 27702,
-    grandTotal: 181602,
-    notes:
-      "1. Epoxy zinc-phosphate primer applied before dispatch.\n2. Crane/lifting and on-site electric power to be arranged by the client.\n3. Quotation valid for 30 days.",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000).toISOString(),
-  },
 ];
 
-// Retrieve all quotations from localStorage (with auto-seed on initial empty run)
+// Retrieve all records from localStorage (with auto-seed on initial empty run)
 export function getQuotations(): Quotation[] {
   if (typeof window === "undefined") return [];
 
@@ -236,7 +275,12 @@ export function getQuotations(): Quotation[] {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      return parsed;
+      // Ensure documentType defaults to 'quotation' if undefined in legacy records
+      return parsed.map((doc) => ({
+        ...doc,
+        documentType: doc.documentType || (doc.quotationNumber?.includes("INV") ? "bill" : "quotation"),
+        gstType: doc.gstType || "intra",
+      }));
     }
     return [];
   } catch (err) {
@@ -245,41 +289,52 @@ export function getQuotations(): Quotation[] {
   }
 }
 
-// Get single quotation by ID
+// Get single record by ID
 export function getQuotationById(id: string): Quotation | null {
   const all = getQuotations();
   return all.find((q) => q.id === id) || null;
 }
 
-// Generate next sequential unique quotation number (e.g. MF-QT-2026-003)
-export function generateNextQuotationNumber(): string {
+// Generate next sequential unique document number
+export function generateNextQuotationNumber(docType: DocumentType = "quotation"): string {
   const all = getQuotations();
   const year = new Date().getFullYear();
-  const prefix = `MF-QT-${year}-`;
+  const prefix = docType === "bill" ? `MF-INV-${year}-` : `MF-QT-${year}-`;
 
   const existingNumbers = all
     .map((q) => q.quotationNumber)
-    .filter((num) => num.startsWith(prefix))
+    .filter((num) => num && num.startsWith(prefix))
     .map((num) => {
       const parts = num.split("-");
       const last = parseInt(parts[parts.length - 1], 10);
       return isNaN(last) ? 0 : last;
     });
 
-  const nextSeq = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : all.length + 1;
+  const nextSeq = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
   return `${prefix}${String(nextSeq).padStart(3, "0")}`;
 }
 
-// Save or Update Quotation
+// Save or Update Quotation / Bill
 export function saveQuotation(formData: QuotationFormData, idToUpdate?: string): Quotation {
   const all = getQuotations();
   const now = new Date().toISOString();
 
-  const { subtotal, discountAmount, gstAmount, grandTotal } = calculateTotals(
+  const gstType = formData.gstType || "intra";
+  const {
+    subtotal,
+    discountAmount,
+    taxableAmount,
+    cgstAmount,
+    sgstAmount,
+    igstAmount,
+    gstAmount,
+    grandTotal,
+  } = calculateTotals(
     formData.items,
     formData.discountType,
     formData.discountValue,
-    formData.gstRate
+    formData.gstRate,
+    gstType
   );
 
   let updatedQuote: Quotation;
@@ -290,8 +345,14 @@ export function saveQuotation(formData: QuotationFormData, idToUpdate?: string):
     updatedQuote = {
       ...formData,
       id: idToUpdate,
+      documentType: formData.documentType || "quotation",
       subtotal,
       discountAmount,
+      taxableAmount,
+      gstType,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
       gstAmount,
       grandTotal,
       createdAt: existingIndex >= 0 ? all[existingIndex].createdAt : now,
@@ -307,9 +368,15 @@ export function saveQuotation(formData: QuotationFormData, idToUpdate?: string):
     // Create new
     updatedQuote = {
       ...formData,
-      id: `qt-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      id: `doc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      documentType: formData.documentType || "quotation",
       subtotal,
       discountAmount,
+      taxableAmount,
+      gstType,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
       gstAmount,
       grandTotal,
       createdAt: now,
@@ -325,7 +392,7 @@ export function saveQuotation(formData: QuotationFormData, idToUpdate?: string):
   return updatedQuote;
 }
 
-// Delete Quotation by ID
+// Delete Record by ID
 export function deleteQuotation(id: string): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -334,7 +401,7 @@ export function deleteQuotation(id: string): boolean {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     return true;
   } catch (err) {
-    console.error("Error deleting quotation:", err);
+    console.error("Error deleting document:", err);
     return false;
   }
 }

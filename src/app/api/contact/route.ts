@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Email Delivery Configuration Check
     const resendApiKey = process.env.RESEND_API_KEY;
-    const receiverEmail = process.env.CONTACT_RECEIVER_EMAIL || "contact@monarchfabrication.com";
+    const receiverEmail = process.env.CONTACT_RECEIVER_EMAIL || "monarchfab2017@gmail.com";
 
     console.log("=== MONARCH FABRICATION NEW ENQUIRY RECEIVED ===");
     console.log({

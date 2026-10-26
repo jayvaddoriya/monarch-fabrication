@@ -23,17 +23,22 @@ import {
   ChevronRight,
   ShieldCheck,
   CheckCircle2,
+  Receipt,
+  FileCheck,
+  Copy,
 } from "lucide-react";
-import { Quotation, QuotationFormData } from "@/types/quotation";
+import { Quotation, QuotationFormData, DocumentType } from "@/types/quotation";
 import {
   getQuotations,
   saveQuotation,
   deleteQuotation,
   formatINR,
   formatDisplayDate,
+  generateNextQuotationNumber,
 } from "@/utils/quotationStorage";
 import {
   downloadQuotationImage,
+  downloadQuotationPDF,
   shareQuotationOnWhatsApp,
 } from "@/utils/quotationImageGenerator";
 import { AdminPasswordScreen } from "@/components/admin/AdminPasswordScreen";
@@ -48,6 +53,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [docFilter, setDocFilter] = useState<"all" | "quotation" | "bill">("all");
   const [view, setView] = useState<AdminView>("list");
 
   // Selected quotation for edit / preview / delete
@@ -88,25 +94,35 @@ export default function AdminPage() {
     setView("list");
   };
 
-  // Filtered quotations based on search query
+  // Filtered quotations based on search query & document type filter
   const filteredQuotations = useMemo(() => {
-    if (!searchQuery.trim()) return quotations;
-    const q = searchQuery.toLowerCase().trim();
-    return quotations.filter(
-      (item) =>
+    return quotations.filter((item) => {
+      // Document type filter
+      if (docFilter !== "all") {
+        const itemType = item.documentType || (item.quotationNumber.includes("INV") ? "bill" : "quotation");
+        if (itemType !== docFilter) return false;
+      }
+
+      // Search query filter
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase().trim();
+      return (
         item.customerName.toLowerCase().includes(q) ||
         item.quotationNumber.toLowerCase().includes(q) ||
         (item.customerPhone && item.customerPhone.toLowerCase().includes(q)) ||
-        (item.customerLocation && item.customerLocation.toLowerCase().includes(q))
-    );
-  }, [quotations, searchQuery]);
+        (item.customerLocation && item.customerLocation.toLowerCase().includes(q)) ||
+        (item.customerGstin && item.customerGstin.toLowerCase().includes(q))
+      );
+    });
+  }, [quotations, searchQuery, docFilter]);
 
   // Dashboard Summary Metrics
   const metrics = useMemo(() => {
-    const totalQuotes = quotations.length;
+    const totalDocs = quotations.length;
+    const totalQuotes = quotations.filter((q) => q.documentType !== "bill").length;
+    const totalBills = quotations.filter((q) => q.documentType === "bill").length;
     const totalValue = quotations.reduce((acc, q) => acc + q.grandTotal, 0);
-    const avgValue = totalQuotes > 0 ? Math.round(totalValue / totalQuotes) : 0;
-    return { totalQuotes, totalValue, avgValue };
+    return { totalDocs, totalQuotes, totalBills, totalValue };
   }, [quotations]);
 
   // Save Quotation Handler (Create or Update)
@@ -115,10 +131,11 @@ export default function AdminPage() {
     const updatedList = getQuotations();
     setQuotations(updatedList);
 
+    const docName = saved.documentType === "bill" ? "Tax Invoice" : "Quotation";
     showToast(
       selectedQuote
-        ? `Quotation ${saved.quotationNumber} updated successfully!`
-        : `Quotation ${saved.quotationNumber} created successfully!`
+        ? `${docName} ${saved.quotationNumber} updated successfully!`
+        : `${docName} ${saved.quotationNumber} created successfully!`
     );
 
     setSelectedQuote(null);
@@ -136,32 +153,62 @@ export default function AdminPage() {
     const success = deleteQuotation(id);
     if (success) {
       setQuotations(getQuotations());
-      showToast(`Quotation ${deletedQuote?.quotationNumber || ""} deleted.`);
+      showToast(`Document ${deletedQuote?.quotationNumber || ""} deleted.`);
     }
     setQuoteToDelete(null);
   };
 
+  // Direct Download PDF Handler
+  const handleDirectDownloadPDF = async (quote: Quotation) => {
+    const docName = quote.documentType === "bill" ? "Tax Invoice" : "Quotation";
+    showToast(`Generating PDF for ${docName} ${quote.quotationNumber}...`);
+    try {
+      await downloadQuotationPDF(quote);
+      showToast(`Downloaded ${quote.quotationNumber} PDF successfully!`);
+    } catch (err) {
+      console.error("Direct PDF download failed:", err);
+    }
+  };
+
   // Direct Download PNG handler from list
-  const handleDirectDownload = async (quote: Quotation) => {
+  const handleDirectDownloadPNG = async (quote: Quotation) => {
     showToast(`Generating PNG for ${quote.quotationNumber}...`);
     try {
       await downloadQuotationImage(quote);
       showToast(`Downloaded ${quote.quotationNumber} PNG image!`);
     } catch (err) {
-      console.error("Direct download failed:", err);
+      console.error("Direct PNG download failed:", err);
     }
   };
 
   // Direct WhatsApp share from list
   const handleDirectWhatsApp = async (quote: Quotation) => {
-    showToast(`Downloading image & opening WhatsApp...`);
+    showToast(`Downloading PDF & opening WhatsApp...`);
     try {
-      await downloadQuotationImage(quote);
+      await downloadQuotationPDF(quote);
       shareQuotationOnWhatsApp(quote);
-      showToast(`Quotation image downloaded! Attach it in WhatsApp chat.`);
+      showToast(`Document downloaded! Attach it in WhatsApp chat.`);
     } catch (err) {
       console.error("Direct WhatsApp failed:", err);
     }
+  };
+
+  // 1-Click Convert Quotation to Tax Invoice Bill
+  const handleConvertToBill = (quote: Quotation) => {
+    const newBillNumber = generateNextQuotationNumber("bill");
+    const convertedQuote: Quotation = {
+      ...quote,
+      id: "", // new record
+      documentType: "bill",
+      quotationNumber: newBillNumber,
+      date: new Date().toISOString().split("T")[0],
+      validUntil: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
+      notes:
+        "1. Tax Invoice subject to Surat jurisdiction.\n2. Goods once sold will not be taken back or exchanged.\n3. Payment strictly due within 15 days of invoice date.\n4. Certified that the particulars given above are true and correct.",
+    };
+    setSelectedQuote(convertedQuote);
+    setView("create");
+    showToast(`Converting ${quote.quotationNumber} to Tax Invoice ${newBillNumber}...`);
   };
 
   // Show loading spinner while determining auth
@@ -214,11 +261,11 @@ export default function AdminPage() {
                   FABRICATION
                 </span>
                 <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-wider">
-                  Admin Panel
+                  Admin Billing & Quotes
                 </span>
               </div>
               <span className="text-[11px] text-slate-400 hidden sm:block">
-                Quotation & Estimation Management System
+                GSTIN: <strong className="text-white font-mono">{COMPANY_CONFIG.contact.gstin}</strong> &bull; {COMPANY_CONFIG.contact.email}
               </span>
             </div>
           </div>
@@ -226,18 +273,19 @@ export default function AdminPage() {
           {/* Right Action Cluster */}
           <div className="flex items-center gap-2.5">
             {view === "list" && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedQuote(null);
-                  setView("create");
-                }}
-                className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-bold uppercase tracking-wider text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Create Quotation</span>
-                <span className="sm:hidden">New Quote</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedQuote(null);
+                    setView("create");
+                  }}
+                  className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-bold uppercase tracking-wider text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Quote / Bill</span>
+                </button>
+              </div>
             )}
 
             <button
@@ -278,68 +326,105 @@ export default function AdminPage() {
         {/* VIEW 2: DASHBOARD QUOTATIONS LIST */}
         {view === "list" && (
           <div className="space-y-6">
-            {/* 3 Overview Metric Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
-                  <FileText className="w-6 h-6" />
+            {/* Overview Metric Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <span className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Total Quotations
+                  <span className="block text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Quotations
                   </span>
-                  <span className="text-2xl font-black text-white font-mono">
+                  <span className="text-xl sm:text-2xl font-black text-white font-mono">
                     {metrics.totalQuotes}
                   </span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                  <DollarSign className="w-6 h-6" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Receipt className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <span className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Total Quoted Value
+                  <span className="block text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Tax Invoices
                   </span>
-                  <span className="text-2xl font-black text-emerald-400 font-mono">
-                    {formatINR(metrics.totalValue)}
+                  <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
+                    {metrics.totalBills}
                   </span>
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                  <TrendingUp className="w-6 h-6" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-[#0b1222] border border-slate-800/90 shadow-lg flex items-center gap-3 col-span-2 sm:col-span-2">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                  <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <span className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Average Quote Size
+                  <span className="block text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                    Total Value Quoted / Billed
                   </span>
-                  <span className="text-2xl font-black text-white font-mono">
-                    {formatINR(metrics.avgValue)}
+                  <span className="text-xl sm:text-2xl font-black text-cyan-300 font-mono">
+                    {formatINR(metrics.totalValue)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Search Bar & List Controls */}
-            <div className="p-4 rounded-2xl bg-[#0b1222] border border-slate-800 flex flex-wrap items-center justify-between gap-3">
-              <div className="relative flex-1 min-w-[260px]">
+            {/* Filter Tabs & Search Bar */}
+            <div className="p-4 rounded-2xl bg-[#0b1222] border border-slate-800 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+              {/* Type Filter Buttons */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[#070c18] border border-slate-800 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setDocFilter("all")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                    docFilter === "all"
+                      ? "bg-cyan-500 text-slate-950"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  All ({quotations.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocFilter("quotation")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                    docFilter === "quotation"
+                      ? "bg-cyan-500 text-slate-950"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Quotes ({metrics.totalQuotes})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDocFilter("bill")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                    docFilter === "bill"
+                      ? "bg-emerald-500 text-slate-950"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Bills ({metrics.totalBills})
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative flex-1 min-w-[220px]">
                 <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by customer name, quotation number, or phone..."
+                  placeholder="Search by customer, quote #, GSTIN, or location..."
                   className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#070c18] border border-slate-800 focus:border-cyan-400 text-white text-xs outline-none transition-colors"
                 />
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-slate-400">
+              <div className="flex items-center gap-3 text-xs text-slate-400 shrink-0">
                 <span>
-                  Showing <strong className="text-white">{filteredQuotations.length}</strong> of{" "}
-                  {quotations.length} quotations
+                  Showing <strong className="text-white">{filteredQuotations.length}</strong> records
                 </span>
                 {searchQuery && (
                   <button
@@ -347,39 +432,26 @@ export default function AdminPage() {
                     onClick={() => setSearchQuery("")}
                     className="text-cyan-400 hover:underline cursor-pointer"
                   >
-                    Clear search
+                    Clear
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Quotations Content: Table for Desktop/Laptop, Responsive Cards for Mobile */}
+            {/* Content Table / Cards */}
             {filteredQuotations.length === 0 ? (
               <div className="p-12 text-center rounded-2xl bg-[#0b1222] border border-dashed border-slate-800 space-y-3">
                 <div className="w-12 h-12 rounded-full bg-slate-900 mx-auto flex items-center justify-center text-slate-500">
                   <FileText className="w-6 h-6" />
                 </div>
                 <h4 className="text-base font-bold text-white uppercase">
-                  {searchQuery ? "No matching quotations found" : "No quotations created yet"}
+                  {searchQuery ? "No matching records found" : "No documents created yet"}
                 </h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
                   {searchQuery
-                    ? "Try searching with a different customer name, phone number, or quote number."
-                    : "Create your first professional fabrication quotation with automatic amount calculation and instant PNG image generation."}
+                    ? "Try searching with a different customer name, phone number, GSTIN, or quote number."
+                    : "Create your first professional fabrication quotation or GST Tax Invoice with automatic calculations and PDF/PNG exports."}
                 </p>
-                {!searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedQuote(null);
-                      setView("create");
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Create First Quotation</span>
-                  </button>
-                )}
               </div>
             ) : (
               <>
@@ -388,207 +460,253 @@ export default function AdminPage() {
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-[#070c18] border-b border-slate-800 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
-                        <th className="py-3.5 px-4">Quote #</th>
+                        <th className="py-3.5 px-4">Doc Type</th>
+                        <th className="py-3.5 px-4">Number</th>
                         <th className="py-3.5 px-4">Date</th>
-                        <th className="py-3.5 px-4">Customer Name & Site</th>
-                        <th className="py-3.5 px-4">Phone Number</th>
+                        <th className="py-3.5 px-4">Customer & Site Location</th>
+                        <th className="py-3.5 px-4">Customer GSTIN</th>
                         <th className="py-3.5 px-4 text-center">Items</th>
                         <th className="py-3.5 px-4 text-right">Grand Total (₹)</th>
                         <th className="py-3.5 px-4 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/80">
-                      {filteredQuotations.map((quote) => (
-                        <tr
-                          key={quote.id}
-                          className="hover:bg-slate-900/60 transition-colors group"
-                        >
-                          {/* Quote Number */}
-                          <td className="py-3.5 px-4">
-                            <span className="font-mono font-bold text-cyan-400 text-xs px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/20">
+                      {filteredQuotations.map((quote) => {
+                        const isBill = quote.documentType === "bill";
+                        return (
+                          <tr
+                            key={quote.id}
+                            className="hover:bg-slate-900/60 transition-colors group"
+                          >
+                            {/* Document Type Badge */}
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                                  isBill
+                                    ? "bg-emerald-950/70 text-emerald-400 border-emerald-500/30"
+                                    : "bg-cyan-950/70 text-cyan-400 border-cyan-500/30"
+                                }`}
+                              >
+                                {isBill ? "Tax Invoice" : "Quotation"}
+                              </span>
+                            </td>
+
+                            {/* Doc Number */}
+                            <td className="py-3.5 px-4 font-mono font-bold text-white text-xs whitespace-nowrap">
                               {quote.quotationNumber}
-                            </span>
-                          </td>
+                            </td>
 
-                          {/* Date */}
-                          <td className="py-3.5 px-4 text-slate-400 whitespace-nowrap">
-                            {formatDisplayDate(quote.date)}
-                          </td>
+                            {/* Date */}
+                            <td className="py-3.5 px-4 text-slate-400 whitespace-nowrap">
+                              {formatDisplayDate(quote.date)}
+                            </td>
 
-                          {/* Customer */}
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold text-white text-xs">{quote.customerName}</div>
-                            {quote.customerLocation && (
-                              <div className="text-[11px] text-slate-400 truncate max-w-[220px]">
-                                {quote.customerLocation}
+                            {/* Customer & Location */}
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-white text-xs">{quote.customerName}</div>
+                              {quote.customerLocation && (
+                                <div className="text-[11px] text-slate-400 truncate max-w-[200px]">
+                                  {quote.customerLocation}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Customer GSTIN */}
+                            <td className="py-3.5 px-4 font-mono text-[11px]">
+                              {quote.customerGstin ? (
+                                <span className="text-emerald-400 font-semibold">{quote.customerGstin}</span>
+                              ) : (
+                                <span className="text-slate-600">—</span>
+                              )}
+                            </td>
+
+                            {/* Items Count */}
+                            <td className="py-3.5 px-4 text-center text-slate-400">
+                              {quote.items.length}
+                            </td>
+
+                            {/* Grand Total */}
+                            <td className="py-3.5 px-4 text-right">
+                              <span className="font-mono font-black text-cyan-300 text-sm">
+                                {formatINR(quote.grandTotal)}
+                              </span>
+                            </td>
+
+                            {/* Actions */}
+                            <td className="py-3.5 px-4 text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                {/* Preview Modal */}
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewQuote(quote)}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyan-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors cursor-pointer"
+                                  title="View Preview"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Direct Download PDF */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDirectDownloadPDF(quote)}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-sky-950 text-slate-400 hover:text-sky-300 border border-slate-800 transition-colors cursor-pointer"
+                                  title="Download PDF Document"
+                                >
+                                  <FileCheck className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Direct Download PNG */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDirectDownloadPNG(quote)}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition-colors cursor-pointer"
+                                  title="Download PNG Image"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* WhatsApp Share */}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDirectWhatsApp(quote)}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 border border-slate-800 transition-colors cursor-pointer"
+                                  title="Share on WhatsApp"
+                                >
+                                  <MessageSquare className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Convert to Bill (if quote) */}
+                                {!isBill && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleConvertToBill(quote)}
+                                    className="p-1.5 rounded-lg bg-slate-900 hover:bg-emerald-950 text-slate-400 hover:text-emerald-300 border border-slate-800 transition-colors cursor-pointer"
+                                    title="Convert to GST Tax Invoice"
+                                  >
+                                    <Receipt className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+
+                                {/* Edit */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedQuote(quote);
+                                    setView("edit");
+                                  }}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-amber-950 text-slate-400 hover:text-amber-400 border border-slate-800 transition-colors cursor-pointer"
+                                  title="Edit Document"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+
+                                {/* Delete */}
+                                <button
+                                  type="button"
+                                  onClick={() => setQuoteToDelete(quote)}
+                                  className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950 text-slate-400 hover:text-rose-400 border border-slate-800 transition-colors cursor-pointer"
+                                  title="Delete Document"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
                               </div>
-                            )}
-                          </td>
-
-                          {/* Phone */}
-                          <td className="py-3.5 px-4 text-slate-300 font-mono text-[11px] whitespace-nowrap">
-                            {quote.customerPhone || <span className="text-slate-600">—</span>}
-                          </td>
-
-                          {/* Items Count */}
-                          <td className="py-3.5 px-4 text-center">
-                            <span className="px-2 py-0.5 rounded-full bg-slate-900 text-slate-300 font-semibold text-[11px]">
-                              {quote.items.length} {quote.items.length === 1 ? "item" : "items"}
-                            </span>
-                          </td>
-
-                          {/* Grand Total */}
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="font-mono font-black text-cyan-300 text-sm">
-                              {formatINR(quote.grandTotal)}
-                            </span>
-                          </td>
-
-                          {/* Action Buttons */}
-                          <td className="py-3.5 px-4 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              {/* Preview Modal Button */}
-                              <button
-                                type="button"
-                                onClick={() => setPreviewQuote(quote)}
-                                className="p-1.5 rounded-lg bg-slate-900 hover:bg-cyan-950 text-slate-400 hover:text-cyan-300 border border-slate-800 transition-colors cursor-pointer"
-                                title="View Quotation Preview"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* Download PNG Button */}
-                              <button
-                                type="button"
-                                onClick={() => handleDirectDownload(quote)}
-                                className="p-1.5 rounded-lg bg-slate-900 hover:bg-sky-950 text-slate-400 hover:text-sky-300 border border-slate-800 transition-colors cursor-pointer"
-                                title="Download Quotation as PNG Image"
-                              >
-                                <Download className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* WhatsApp Share Button */}
-                              <button
-                                type="button"
-                                onClick={() => handleDirectWhatsApp(quote)}
-                                className="p-1.5 rounded-lg bg-slate-900 hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 border border-slate-800 transition-colors cursor-pointer"
-                                title="Share on WhatsApp"
-                              >
-                                <MessageSquare className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* Edit Button */}
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedQuote(quote);
-                                  setView("edit");
-                                }}
-                                className="p-1.5 rounded-lg bg-slate-900 hover:bg-amber-950 text-slate-400 hover:text-amber-400 border border-slate-800 transition-colors cursor-pointer"
-                                title="Edit Quotation"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-
-                              {/* Delete Button */}
-                              <button
-                                type="button"
-                                onClick={() => setQuoteToDelete(quote)}
-                                className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950 text-slate-400 hover:text-rose-400 border border-slate-800 transition-colors cursor-pointer"
-                                title="Delete Quotation"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Mobile & Tablet Card Layout */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
-                  {filteredQuotations.map((quote) => (
-                    <div
-                      key={quote.id}
-                      className="p-5 rounded-2xl bg-[#0b1222] border border-slate-800 space-y-3.5 shadow-lg"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-cyan-400 text-xs px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/20">
-                          {quote.quotationNumber}
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {formatDisplayDate(quote.date)}
-                        </span>
+                  {filteredQuotations.map((quote) => {
+                    const isBill = quote.documentType === "bill";
+                    return (
+                      <div
+                        key={quote.id}
+                        className="p-5 rounded-2xl bg-[#0b1222] border border-slate-800 space-y-3.5 shadow-lg"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                              isBill
+                                ? "bg-emerald-950/70 text-emerald-400 border-emerald-500/30"
+                                : "bg-cyan-950/70 text-cyan-400 border-cyan-500/30"
+                            }`}
+                          >
+                            {isBill ? "Tax Invoice" : "Quotation"}
+                          </span>
+                          <span className="font-mono font-bold text-white text-xs">
+                            {quote.quotationNumber}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="text-base font-bold text-white">{quote.customerName}</h4>
+                          {quote.customerLocation && (
+                            <div className="text-xs text-slate-400 mt-0.5">
+                              Site: {quote.customerLocation}
+                            </div>
+                          )}
+                          {quote.customerGstin && (
+                            <div className="text-xs text-emerald-400 font-mono mt-0.5">
+                              GSTIN: {quote.customerGstin}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
+                          <span className="text-slate-400">{formatDisplayDate(quote.date)}</span>
+                          <span className="text-base font-black text-cyan-400 font-mono">
+                            {formatINR(quote.grandTotal)}
+                          </span>
+                        </div>
+
+                        {/* Card Actions */}
+                        <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewQuote(quote)}
+                            className="py-2 rounded-lg bg-slate-900 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDirectDownloadPDF(quote)}
+                            className="py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <FileCheck className="w-3.5 h-3.5" />
+                            <span>PDF</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDirectWhatsApp(quote)}
+                            className="py-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Share</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedQuote(quote);
+                              setView("edit");
+                            }}
+                            className="py-2 rounded-lg bg-slate-900 hover:bg-amber-950 text-slate-300 hover:text-amber-400 border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                            <span>Edit</span>
+                          </button>
+                        </div>
                       </div>
-
-                      <div>
-                        <h4 className="text-base font-bold text-white">{quote.customerName}</h4>
-                        {quote.customerPhone && (
-                          <div className="text-xs text-slate-400 mt-0.5">
-                            Phone: {quote.customerPhone}
-                          </div>
-                        )}
-                        {quote.customerLocation && (
-                          <div className="text-xs text-slate-500 mt-0.5">
-                            Site: {quote.customerLocation}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
-                        <span className="text-slate-400">
-                          {quote.items.length} {quote.items.length === 1 ? "Item" : "Items"}
-                        </span>
-                        <span className="text-base font-black text-cyan-400 font-mono">
-                          {formatINR(quote.grandTotal)}
-                        </span>
-                      </div>
-
-                      {/* Card Actions */}
-                      <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800">
-                        <button
-                          type="button"
-                          onClick={() => setPreviewQuote(quote)}
-                          className="py-2 rounded-lg bg-slate-900 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDirectDownload(quote)}
-                          className="py-2 rounded-lg bg-slate-900 hover:bg-sky-950 text-slate-300 hover:text-sky-300 border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>PNG</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => handleDirectWhatsApp(quote)}
-                          className="py-2 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Share</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedQuote(quote);
-                            setView("edit");
-                          }}
-                          className="py-2 rounded-lg bg-slate-900 hover:bg-amber-950 text-slate-300 hover:text-amber-400 border border-slate-800 text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          <span>Edit</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}

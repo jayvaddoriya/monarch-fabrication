@@ -9,11 +9,11 @@ import {
   Printer,
   Edit,
   CheckCircle2,
-  ExternalLink,
   Loader2,
   FileText,
+  FileCheck,
   Building2,
-  ShieldCheck,
+  Receipt,
 } from "lucide-react";
 import { Quotation } from "@/types/quotation";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/utils/quotationStorage";
 import {
   downloadQuotationImage,
+  downloadQuotationPDF,
   shareQuotationOnWhatsApp,
 } from "@/utils/quotationImageGenerator";
 import { COMPANY_CONFIG } from "@/data/companyConfig";
@@ -45,14 +46,29 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleDownload = async () => {
+  const isBill = quotation.documentType === "bill";
+
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      await downloadQuotationPDF(quotation);
+      setShareNotice("PDF document downloaded successfully!");
+      setTimeout(() => setShareNotice(null), 4000);
+    } catch (err) {
+      console.error("PDF download failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleDownloadPNG = async () => {
     setDownloading(true);
     try {
       await downloadQuotationImage(quotation);
-      setShareNotice("Quotation image downloaded successfully as PNG!");
+      setShareNotice("High-resolution PNG image downloaded successfully!");
       setTimeout(() => setShareNotice(null), 4000);
     } catch (err) {
-      console.error("Download failed:", err);
+      console.error("PNG download failed:", err);
     } finally {
       setDownloading(false);
     }
@@ -61,13 +77,12 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
   const handleWhatsAppShare = async () => {
     setDownloading(true);
     try {
-      // Download PNG so user has it ready to attach
-      await downloadQuotationImage(quotation);
-      // Open WhatsApp with pre-filled message
+      // Download PDF / PNG first so user has file ready to attach
+      await downloadQuotationPDF(quotation);
       shareQuotationOnWhatsApp(quotation);
 
       setShareNotice(
-        "Quotation image downloaded & WhatsApp opened! Simply attach the downloaded image in the chat."
+        "PDF downloaded & WhatsApp opened! Simply attach the downloaded PDF in the chat."
       );
       setTimeout(() => setShareNotice(null), 6000);
     } catch (err) {
@@ -82,24 +97,24 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in">
-      <div className="relative w-full max-w-4xl bg-[#0b1222] border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 animate-fade-in">
+      <div className="relative w-full max-w-4xl bg-[#0b1222] border border-cyan-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
         {/* Top Control Bar */}
         <div className="px-5 py-3.5 bg-[#070c18] border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <span>Quotation Preview</span>
+              <span>{isBill ? "Tax Invoice Preview" : "Quotation Preview"}</span>
               <span className="font-mono text-xs text-cyan-400">({quotation.quotationNumber})</span>
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={handlePrint}
               className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-              title="Print / Save as PDF"
+              title="Print"
             >
               <Printer className="w-4 h-4" />
             </button>
@@ -113,20 +128,33 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               <span>Edit</span>
             </button>
 
+            {/* Primary Action: Download PDF */}
             <button
               type="button"
-              onClick={handleDownload}
+              onClick={handleDownloadPDF}
               disabled={downloading}
-              className="px-3.5 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-cyan-500/20 disabled:opacity-50"
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-cyan-500/25 disabled:opacity-50"
             >
               {downloading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : (
-                <Download className="w-3.5 h-3.5" />
+                <FileCheck className="w-3.5 h-3.5" />
               )}
-              <span>Download PNG</span>
+              <span>Download PDF</span>
             </button>
 
+            {/* Download PNG */}
+            <button
+              type="button"
+              onClick={handleDownloadPNG}
+              disabled={downloading}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>PNG</span>
+            </button>
+
+            {/* WhatsApp Share */}
             <button
               type="button"
               onClick={handleWhatsAppShare}
@@ -134,7 +162,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               className="px-3.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#25D366]/20 disabled:opacity-50"
             >
               <MessageSquare className="w-3.5 h-3.5 fill-slate-950" />
-              <span>Share on WhatsApp</span>
+              <span>WhatsApp</span>
             </button>
 
             <button
@@ -178,11 +206,14 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                   <p className="text-xs text-sky-700 font-bold italic">
                     &ldquo;{COMPANY_CONFIG.tagline}&rdquo;
                   </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                  <p className="text-[11px] text-slate-600 mt-0.5 leading-tight font-medium">
                     {COMPANY_CONFIG.contact.address.fullAddress}
                   </p>
                   <p className="text-[11px] text-slate-600 font-medium">
                     Phone: {COMPANY_CONFIG.contact.phone} &bull; Email: {COMPANY_CONFIG.contact.email}
+                  </p>
+                  <p className="text-[11px] text-slate-900 font-bold font-mono mt-0.5">
+                    GSTIN: {COMPANY_CONFIG.contact.gstin} &bull; State: {COMPANY_CONFIG.contact.stateName} (Code: {COMPANY_CONFIG.contact.stateCode})
                   </p>
                 </div>
               </div>
@@ -190,11 +221,11 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               {/* Document Meta Badge */}
               <div className="text-right">
                 <div className="inline-block px-3 py-1 rounded bg-slate-950 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
-                  ESTIMATE / QUOTATION
+                  {isBill ? "TAX INVOICE" : "ESTIMATE / QUOTATION"}
                 </div>
                 <div className="text-xs space-y-0.5">
                   <div>
-                    <span className="text-slate-500 font-semibold">Quote #: </span>
+                    <span className="text-slate-500 font-semibold">{isBill ? "Invoice #: " : "Quote #: "}</span>
                     <span className="font-mono font-bold text-sky-800">{quotation.quotationNumber}</span>
                   </div>
                   <div>
@@ -202,9 +233,9 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     <span className="text-slate-800 font-medium">{formatDisplayDate(quotation.date)}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 font-semibold">Validity: </span>
+                    <span className="text-slate-500 font-semibold">{isBill ? "Due Date: " : "Validity: "}</span>
                     <span className="text-slate-800 font-medium">
-                      {quotation.validUntil ? formatDisplayDate(quotation.validUntil) : "30 Days"}
+                      {quotation.validUntil ? formatDisplayDate(quotation.validUntil) : isBill ? "Immediate" : "30 Days"}
                     </span>
                   </div>
                 </div>
@@ -215,7 +246,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
                 <span className="block text-[10px] font-bold text-sky-700 uppercase tracking-wider mb-0.5">
-                  Quotation Prepared For
+                  {isBill ? "Billed To / Buyer Details" : "Quotation Prepared For"}
                 </span>
                 <span className="block font-bold text-slate-950 text-sm">
                   {quotation.customerName}
@@ -223,14 +254,24 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                 <span className="text-slate-600 block mt-0.5">
                   Phone: {quotation.customerPhone || "Not specified"}
                 </span>
+                {isBill && (
+                  <span className="text-slate-900 block mt-0.5 font-bold font-mono">
+                    Buyer GSTIN: {quotation.customerGstin || "URP (Unregistered Person)"}
+                  </span>
+                )}
               </div>
               <div>
                 <span className="block text-[10px] font-bold text-sky-700 uppercase tracking-wider mb-0.5">
-                  Project Site Location
+                  {isBill ? "Delivery / Project Site Location" : "Project Site Location"}
                 </span>
-                <span className="text-slate-800 font-medium">
-                  {quotation.customerLocation || "Monarch Fabrication Workshop / Client Site"}
+                <span className="text-slate-800 font-medium block">
+                  {quotation.customerLocation || "Surat, Gujarat"}
                 </span>
+                {isBill && (
+                  <span className="text-slate-600 block mt-0.5">
+                    State: {quotation.customerState || "GUJARAT (024)"}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -242,7 +283,8 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                     <th className="py-2.5 px-3 text-center w-12">#</th>
                     <th className="py-2.5 px-3">Part / Description</th>
                     <th className="py-2.5 px-3">Size / Specs</th>
-                    <th className="py-2.5 px-3 text-center w-16">Qty</th>
+                    {isBill && <th className="py-2.5 px-3 text-center w-16">HSN</th>}
+                    <th className="py-2.5 px-3 text-center w-14">Qty</th>
                     <th className="py-2.5 px-3 text-right w-24">Rate (₹)</th>
                     <th className="py-2.5 px-3 text-right w-28">Amount (₹)</th>
                   </tr>
@@ -262,6 +304,11 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                       <td className="py-2.5 px-3 text-slate-600 font-normal">
                         {item.sizeDimension || "-"}
                       </td>
+                      {isBill && (
+                        <td className="py-2.5 px-3 text-center text-slate-500 font-mono">
+                          {item.hsnSacCode || "7308"}
+                        </td>
+                      )}
                       <td className="py-2.5 px-3 text-center font-semibold text-slate-900">
                         {item.quantity}
                       </td>
@@ -282,7 +329,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               {/* Terms & Notes (Left) */}
               <div className="sm:col-span-7 p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1">
                 <span className="font-bold text-sky-800 text-[11px] uppercase tracking-wider block">
-                  Terms & Conditions
+                  {isBill ? "Terms of Sale & Payment" : "Terms & Conditions"}
                 </span>
                 <p className="text-[11px] text-slate-600 whitespace-pre-line leading-relaxed font-normal">
                   {quotation.notes}
@@ -290,7 +337,7 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               </div>
 
               {/* Totals Breakdown (Right) */}
-              <div className="sm:col-span-5 p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <div className="sm:col-span-5 p-3.5 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-600">
                   <span>Subtotal:</span>
                   <span className="font-mono font-bold text-slate-900">
@@ -309,18 +356,44 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
                   </div>
                 )}
 
+                <div className="flex justify-between text-slate-700 font-semibold pt-1 border-t border-slate-200">
+                  <span>Taxable Value:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {formatINR(quotation.taxableAmount ?? (quotation.subtotal - quotation.discountAmount))}
+                  </span>
+                </div>
+
                 {quotation.gstRate > 0 && (
-                  <div className="flex justify-between text-slate-700">
-                    <span>GST ({quotation.gstRate}%):</span>
-                    <span className="font-mono font-bold text-slate-900">
-                      + {formatINR(quotation.gstAmount)}
-                    </span>
-                  </div>
+                  <>
+                    {quotation.gstType !== "inter" ? (
+                      <>
+                        <div className="flex justify-between text-slate-600">
+                          <span>CGST ({quotation.gstRate / 2}%):</span>
+                          <span className="font-mono font-semibold text-slate-900">
+                            + {formatINR(quotation.cgstAmount ?? Math.round(quotation.gstAmount / 2))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>SGST ({quotation.gstRate / 2}%):</span>
+                          <span className="font-mono font-semibold text-slate-900">
+                            + {formatINR(quotation.sgstAmount ?? (quotation.gstAmount - Math.round(quotation.gstAmount / 2)))}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-slate-600">
+                        <span>IGST ({quotation.gstRate}%):</span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          + {formatINR(quotation.gstAmount)}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
 
-                <div className="pt-2 border-t border-slate-300 flex justify-between items-center">
+                <div className="pt-2 border-t-2 border-slate-300 flex justify-between items-center">
                   <span className="font-black text-slate-950 text-sm uppercase">
-                    Grand Total:
+                    Total Amount:
                   </span>
                   <span className="font-mono font-black text-lg text-sky-800">
                     {formatINR(quotation.grandTotal)}
@@ -340,11 +413,11 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             {/* Signatory Footer */}
             <div className="pt-6 border-t border-slate-200 flex items-end justify-between text-xs">
               <div>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Quality Guaranteed &bull; Precision Structural Welding &bull; Smooth Finish
+                <p className="text-[11px] text-slate-600 font-bold">
+                  Monarch Fabrication &bull; GSTIN: {COMPANY_CONFIG.contact.gstin}
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Monarch Fabrication &bull; {COMPANY_CONFIG.contact.address.fullAddress}
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {COMPANY_CONFIG.contact.address.fullAddress} &bull; Surat
                 </p>
               </div>
 
@@ -368,12 +441,22 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleDownload}
+              onClick={handleDownloadPDF}
               disabled={downloading}
-              className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/25 disabled:opacity-50"
+            >
+              <FileCheck className="w-4 h-4" />
+              <span>Download PDF</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPNG}
+              disabled={downloading}
+              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>Download PNG Image</span>
+              <span>PNG</span>
             </button>
 
             <button

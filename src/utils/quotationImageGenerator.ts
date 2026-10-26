@@ -1,3 +1,4 @@
+import jsPDF from "jspdf";
 import { Quotation } from "@/types/quotation";
 import { formatINR, formatDisplayDate, numberToWordsINR } from "@/utils/quotationStorage";
 import { COMPANY_CONFIG } from "@/data/companyConfig";
@@ -42,14 +43,15 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 }
 
 /**
- * Generates a high-resolution, pixel-perfect PNG image of a Quotation using HTML5 Canvas
+ * Generates a high-resolution, pixel-perfect PNG image of a Quotation or Tax Invoice using HTML5 Canvas
  */
 export async function generateQuotationImage(quotation: Quotation): Promise<string> {
   if (typeof window === "undefined") return "";
 
+  const isBill = quotation.documentType === "bill";
   const scale = 2; // 2x Retina scale for crisp 300dpi printing & mobile readability
   const baseWidth = 1100;
-  const padding = 50;
+  const padding = 45;
   const contentWidth = baseWidth - padding * 2;
 
   // Measurement canvas for row heights
@@ -65,8 +67,8 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   }
 
   const measuredRows: MeasuredRow[] = quotation.items.map((item) => {
-    const descWidth = 380;
-    const sizeWidth = 190;
+    const descWidth = isBill ? 360 : 380;
+    const sizeWidth = isBill ? 170 : 190;
 
     mCtx.font = "bold 13px system-ui, -apple-system, sans-serif";
     const partLines = wrapText(mCtx, item.partName, descWidth);
@@ -84,17 +86,17 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
 
   // Measure notes lines
   const notesText = quotation.notes || "";
-  mCtx.font = "normal 12px system-ui, -apple-system, sans-serif";
+  mCtx.font = "normal 11px system-ui, -apple-system, sans-serif";
   const notesLines = notesText
     ? notesText.split("\n").flatMap((line) => wrapText(mCtx, line, 480))
     : [];
-  const notesBlockHeight = Math.max(100, notesLines.length * 18 + 50);
+  const notesBlockHeight = Math.max(120, notesLines.length * 17 + 55);
 
   // Calculate dynamic canvas height
-  const headerHeight = 175;
-  const clientMetaHeight = 135;
+  const headerHeight = 185;
+  const clientMetaHeight = isBill ? 155 : 125;
   const tableHeaderHeight = 42;
-  const totalsSectionHeight = Math.max(160, notesBlockHeight);
+  const totalsSectionHeight = Math.max(170, notesBlockHeight);
   const wordsSectionHeight = 44;
   const footerSignHeight = 160;
 
@@ -139,17 +141,17 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   // Load Logo
   const logoImg = await loadImage("/images/logo-emblem.png");
   if (logoImg) {
-    // Draw logo badge with white background and subtle border
+    // Draw logo badge with clean white background and subtle border
     ctx.fillStyle = "#FFFFFF";
     ctx.beginPath();
-    ctx.roundRect(padding, y, 68, 68, 12);
+    ctx.roundRect(padding, y, 70, 70, 12);
     ctx.fill();
 
     ctx.strokeStyle = "#CBD5E1";
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.drawImage(logoImg, padding + 7, y + 7, 54, 54);
+    ctx.drawImage(logoImg, padding + 8, y + 8, 54, 54);
   }
 
   // Company Name
@@ -163,14 +165,23 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.font = "italic 600 12px system-ui, -apple-system, sans-serif";
   ctx.fillText(`“${COMPANY_CONFIG.tagline}”`, textLeft, y + 43);
 
-  // Contact Info
+  // Contact Info & Verified GSTIN Details
   ctx.fillStyle = "#475569";
   ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
   ctx.fillText(`Workshop & Office: ${COMPANY_CONFIG.contact.address.fullAddress}`, textLeft, y + 60);
   ctx.fillText(
-    `Phone: ${COMPANY_CONFIG.contact.phone}   |   Email: ${COMPANY_CONFIG.contact.email}`,
+    `Contact: ${COMPANY_CONFIG.contact.phone}   |   Email: ${COMPANY_CONFIG.contact.email}`,
     textLeft,
     y + 75
+  );
+
+  // GSTIN & State Badge on Header
+  ctx.fillStyle = "#0F172A";
+  ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+  ctx.fillText(
+    `GSTIN: ${COMPANY_CONFIG.contact.gstin}   |   State: ${COMPANY_CONFIG.contact.stateName} (Code: ${COMPANY_CONFIG.contact.stateCode})`,
+    textLeft,
+    y + 91
   );
 
   // Document Heading & Meta Badge (Right Side)
@@ -183,13 +194,13 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.fillStyle = "#00B4D8";
   ctx.font = "900 20px system-ui, -apple-system, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("ESTIMATE / QUOTATION", metaRight - 130, y + 28);
+  ctx.fillText(isBill ? "TAX INVOICE" : "ESTIMATE / QUOTATION", metaRight - 130, y + 28);
   ctx.textAlign = "left";
 
-  // Quote Details Box
+  // Document Details Box
   ctx.fillStyle = "#060A14";
   ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
-  ctx.fillText("Quotation No:", metaRight - 250, y + 60);
+  ctx.fillText(isBill ? "Invoice No:" : "Quotation No:", metaRight - 250, y + 60);
   ctx.fillStyle = "#0077B6";
   ctx.fillText(quotation.quotationNumber, metaRight - 130, y + 60);
 
@@ -200,12 +211,20 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.fillText(formatDisplayDate(quotation.date), metaRight - 130, y + 78);
 
   ctx.fillStyle = "#060A14";
-  ctx.fillText("Validity:", metaRight - 250, y + 94);
+  ctx.fillText(isBill ? "Due Date:" : "Validity:", metaRight - 250, y + 94);
   ctx.fillStyle = "#334155";
-  ctx.fillText(quotation.validUntil ? formatDisplayDate(quotation.validUntil) : "30 Days from date", metaRight - 130, y + 94);
+  ctx.fillText(
+    quotation.validUntil
+      ? formatDisplayDate(quotation.validUntil)
+      : isBill
+      ? "Immediate"
+      : "30 Days from date",
+    metaRight - 130,
+    y + 94
+  );
 
   // Divider Line
-  y += 105;
+  y += 112;
   ctx.strokeStyle = "#E2E8F0";
   ctx.lineWidth = 1.5;
   ctx.beginPath();
@@ -213,19 +232,20 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.lineTo(baseWidth - padding, y);
   ctx.stroke();
 
-  // 3. Customer / Bill-To Box
+  // 3. Customer / Bill-To Box with GSTIN & Site Location
   y += 15;
+  const customerBoxHeight = isBill ? 95 : 75;
   ctx.fillStyle = "#F8FAFC";
   ctx.strokeStyle = "#E2E8F0";
   ctx.beginPath();
-  ctx.roundRect(padding, y, contentWidth, 75, 8);
+  ctx.roundRect(padding, y, contentWidth, customerBoxHeight, 8);
   ctx.fill();
   ctx.stroke();
 
   // Left side: Customer
   ctx.fillStyle = "#0077B6";
   ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
-  ctx.fillText("QUOTATION PREPARED FOR:", padding + 16, y + 22);
+  ctx.fillText(isBill ? "BILLED TO / BUYER DETAILS:" : "QUOTATION PREPARED FOR:", padding + 16, y + 22);
 
   ctx.fillStyle = "#060A14";
   ctx.font = "900 15px system-ui, -apple-system, sans-serif";
@@ -239,31 +259,67 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
     y + 60
   );
 
+  if (isBill) {
+    ctx.fillStyle = "#0F172A";
+    ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+    ctx.fillText(
+      `Buyer GSTIN: ${quotation.customerGstin || "URP (Unregistered Person)"}`,
+      padding + 16,
+      y + 78
+    );
+  }
+
   // Right side: Site Location
   ctx.fillStyle = "#0077B6";
   ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
-  ctx.fillText("PROJECT SITE LOCATION:", padding + 540, y + 22);
+  ctx.fillText(isBill ? "DELIVERY / PROJECT SITE LOCATION:" : "PROJECT SITE LOCATION:", padding + 540, y + 22);
 
   ctx.fillStyle = "#060A14";
   ctx.font = "600 13px system-ui, -apple-system, sans-serif";
   ctx.fillText(
-    quotation.customerLocation || "Monarch Fabrication Workshop / Client Site",
+    quotation.customerLocation || "Shivay compound, sardar chowk, khadsad, surat",
     padding + 540,
     y + 42
   );
 
-  // 4. Quotation Items Table
-  y += 95;
+  if (isBill) {
+    ctx.fillStyle = "#475569";
+    ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
+    ctx.fillText(
+      `State: ${quotation.customerState || "GUJARAT (Code: 024)"}`,
+      padding + 540,
+      y + 60
+    );
+    ctx.fillText(
+      `Place of Supply: ${quotation.customerLocation ? "Client Site" : "Gujarat (024)"}`,
+      padding + 540,
+      y + 78
+    );
+  }
+
+  // 4. Items Table
+  y += customerBoxHeight + 20;
 
   // Column X Coordinates & Widths
-  const colX = {
-    sno: padding, // width 45
-    desc: padding + 45, // width 460
-    size: padding + 505, // width 215
-    qty: padding + 720, // width 80
-    rate: padding + 800, // width 100
-    amount: padding + 900, // width 100
-  };
+  const colX = isBill
+    ? {
+        sno: padding, // 40
+        desc: padding + 40, // 420
+        size: padding + 460, // 200
+        hsn: padding + 660, // 75
+        qty: padding + 735, // 65
+        rate: padding + 800, // 100
+        amount: padding + 900, // 110
+      }
+    : {
+        sno: padding, // 45
+        desc: padding + 45, // 460
+        size: padding + 505, // 215
+        hsn: 0,
+        qty: padding + 720, // 80
+        rate: padding + 800, // 100
+        amount: padding + 900, // 110
+      };
 
   // Table Header
   ctx.fillStyle = "#0B1222";
@@ -275,18 +331,23 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.font = "bold 12px system-ui, -apple-system, sans-serif";
 
   ctx.textAlign = "center";
-  ctx.fillText("#", colX.sno + 22, y + 25);
+  ctx.fillText("#", colX.sno + 20, y + 25);
 
   ctx.textAlign = "left";
   ctx.fillText("PART / DESCRIPTION", colX.desc + 12, y + 25);
   ctx.fillText("SIZE / SPECIFICATION", colX.size + 10, y + 25);
 
+  if (isBill) {
+    ctx.textAlign = "center";
+    ctx.fillText("HSN", colX.hsn + 37, y + 25);
+  }
+
   ctx.textAlign = "center";
-  ctx.fillText("QTY", colX.qty + 40, y + 25);
+  ctx.fillText("QTY", colX.qty + 35, y + 25);
 
   ctx.textAlign = "right";
   ctx.fillText("RATE (₹)", colX.rate + 90, y + 25);
-  ctx.fillText("AMOUNT (₹)", colX.amount + 90, y + 25);
+  ctx.fillText("AMOUNT (₹)", colX.amount + 95, y + 25);
 
   y += tableHeaderHeight;
 
@@ -311,7 +372,7 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
     ctx.fillStyle = "#475569";
     ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(String(index + 1), colX.sno + 22, y + 22);
+    ctx.fillText(String(index + 1), colX.sno + 20, y + 22);
 
     // Part Name (multi-line)
     ctx.textAlign = "left";
@@ -328,11 +389,19 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
       ctx.fillText(line, colX.size + 10, y + 20 + lIdx * 18);
     });
 
+    // HSN Code if Bill
+    if (isBill) {
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#64748B";
+      ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
+      ctx.fillText(item.hsnSacCode || "7308", colX.hsn + 37, y + 22);
+    }
+
     // Qty
     ctx.textAlign = "center";
     ctx.fillStyle = "#0F172A";
     ctx.font = "600 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(String(item.quantity), colX.qty + 40, y + 22);
+    ctx.fillText(String(item.quantity), colX.qty + 35, y + 22);
 
     // Rate
     ctx.textAlign = "right";
@@ -343,7 +412,7 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
     // Amount
     ctx.fillStyle = "#0F172A";
     ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(formatINR(item.amount).replace("₹", ""), colX.amount + 90, y + 22);
+    ctx.fillText(formatINR(item.amount).replace("₹", ""), colX.amount + 95, y + 22);
 
     y += row.rowHeight;
   });
@@ -358,7 +427,7 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   const bottomSectionStartY = y;
 
   // Notes Box (Left)
-  const notesWidth = 530;
+  const notesWidth = 510;
   ctx.fillStyle = "#F8FAFC";
   ctx.strokeStyle = "#E2E8F0";
   ctx.beginPath();
@@ -369,7 +438,7 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.fillStyle = "#0077B6";
   ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("TERMS & SPECIAL CONDITIONS:", padding + 16, y + 22);
+  ctx.fillText(isBill ? "TERMS OF SALE & PAYMENT INSTRUCTIONS:" : "TERMS & SPECIAL CONDITIONS:", padding + 16, y + 22);
 
   ctx.fillStyle = "#334155";
   ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
@@ -378,8 +447,8 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   });
 
   // Totals Box (Right)
-  const totalsLeft = padding + 550;
-  const totalsWidth = contentWidth - 550;
+  const totalsLeft = padding + 530;
+  const totalsWidth = contentWidth - 530;
 
   ctx.fillStyle = "#FFFFFF";
   ctx.strokeStyle = "#E2E8F0";
@@ -388,58 +457,100 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.fill();
   ctx.stroke();
 
-  let totY = y + 26;
+  let totY = y + 24;
 
   // Subtotal
   ctx.fillStyle = "#475569";
-  ctx.font = "normal 13px system-ui, -apple-system, sans-serif";
-  ctx.fillText("Subtotal:", totalsLeft + 18, totY);
+  ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+  ctx.fillText("Subtotal:", totalsLeft + 16, totY);
   ctx.textAlign = "right";
   ctx.fillStyle = "#0F172A";
-  ctx.font = "600 13px system-ui, -apple-system, sans-serif";
-  ctx.fillText(formatINR(quotation.subtotal), totalsLeft + totalsWidth - 18, totY);
+  ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+  ctx.fillText(formatINR(quotation.subtotal), totalsLeft + totalsWidth - 16, totY);
 
   // Discount
   if (quotation.discountAmount > 0) {
-    totY += 24;
+    totY += 20;
     ctx.textAlign = "left";
     ctx.fillStyle = "#059669";
-    ctx.font = "normal 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`Discount (${quotation.discountType === "percentage" ? `${quotation.discountValue}%` : "Fixed"}):`, totalsLeft + 18, totY);
+    ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText(`Discount (${quotation.discountType === "percentage" ? `${quotation.discountValue}%` : "Fixed"}):`, totalsLeft + 16, totY);
     ctx.textAlign = "right";
-    ctx.font = "600 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`- ${formatINR(quotation.discountAmount)}`, totalsLeft + totalsWidth - 18, totY);
+    ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText(`- ${formatINR(quotation.discountAmount)}`, totalsLeft + totalsWidth - 16, totY);
   }
 
-  // GST
-  if (quotation.gstRate > 0) {
-    totY += 24;
+  // Taxable Value
+  if (quotation.discountAmount > 0 || isBill) {
+    totY += 20;
     ctx.textAlign = "left";
     ctx.fillStyle = "#475569";
-    ctx.font = "normal 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`GST (${quotation.gstRate}%):`, totalsLeft + 18, totY);
+    ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+    ctx.fillText("Taxable Value:", totalsLeft + 16, totY);
     ctx.textAlign = "right";
     ctx.fillStyle = "#0F172A";
-    ctx.font = "600 13px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`+ ${formatINR(quotation.gstAmount)}`, totalsLeft + totalsWidth - 18, totY);
+    ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+    const taxable = quotation.taxableAmount ?? (quotation.subtotal - quotation.discountAmount);
+    ctx.fillText(formatINR(taxable), totalsLeft + totalsWidth - 16, totY);
+  }
+
+  // GST Breakdown
+  if (quotation.gstRate > 0) {
+    const isIntra = quotation.gstType !== "inter";
+    if (isIntra) {
+      // CGST (half)
+      totY += 20;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#475569";
+      ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+      const cgst = quotation.cgstAmount ?? Math.round(quotation.gstAmount / 2);
+      ctx.fillText(`CGST (${quotation.gstRate / 2}%):`, totalsLeft + 16, totY);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#0F172A";
+      ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`+ ${formatINR(cgst)}`, totalsLeft + totalsWidth - 16, totY);
+
+      // SGST (half)
+      totY += 20;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#475569";
+      ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+      const sgst = quotation.sgstAmount ?? (quotation.gstAmount - cgst);
+      ctx.fillText(`SGST (${quotation.gstRate / 2}%):`, totalsLeft + 16, totY);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#0F172A";
+      ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`+ ${formatINR(sgst)}`, totalsLeft + totalsWidth - 16, totY);
+    } else {
+      // IGST (full)
+      totY += 20;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#475569";
+      ctx.font = "normal 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`IGST (${quotation.gstRate}%):`, totalsLeft + 16, totY);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#0F172A";
+      ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+      ctx.fillText(`+ ${formatINR(quotation.gstAmount)}`, totalsLeft + totalsWidth - 16, totY);
+    }
   }
 
   // Grand Total Highlight Card
-  totY += 26;
+  totY += 24;
   ctx.fillStyle = "#060A14";
   ctx.beginPath();
-  ctx.roundRect(totalsLeft + 10, totY, totalsWidth - 20, 48, 6);
+  ctx.roundRect(totalsLeft + 8, totY, totalsWidth - 16, 46, 6);
   ctx.fill();
 
   ctx.textAlign = "left";
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
-  ctx.fillText("GRAND TOTAL:", totalsLeft + 24, totY + 30);
+  ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+  ctx.fillText("TOTAL AMOUNT:", totalsLeft + 18, totY + 28);
 
   ctx.textAlign = "right";
   ctx.fillStyle = "#00B4D8";
-  ctx.font = "900 18px system-ui, -apple-system, sans-serif";
-  ctx.fillText(formatINR(quotation.grandTotal), totalsLeft + totalsWidth - 24, totY + 30);
+  ctx.font = "900 17px system-ui, -apple-system, sans-serif";
+  ctx.fillText(formatINR(quotation.grandTotal), totalsLeft + totalsWidth - 18, totY + 28);
 
   // 6. Amount in Words Banner
   y = bottomSectionStartY + totalsSectionHeight + 12;
@@ -461,15 +572,23 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   // 7. Footer: Signatory Box & Monarch Note
   y += 50;
 
-  // Left side: Bank / Payment info or Guarantee
+  // Left side: Guarantee
   ctx.fillStyle = "#060A14";
   ctx.font = "bold 12px system-ui, -apple-system, sans-serif";
-  ctx.fillText("Quality & Durability Guarantee:", padding, y + 20);
+  ctx.fillText("Declaration & Certification:", padding, y + 20);
 
   ctx.fillStyle = "#475569";
   ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
-  ctx.fillText("All metalwork is fabricated in accordance with standard architectural specifications.", padding, y + 36);
-  ctx.fillText("Welds are ground smooth, buffed/primed, and guaranteed against structural defects.", padding, y + 52);
+  ctx.fillText(
+    "Certified that the particulars given above are true and correct. All fabrication items",
+    padding,
+    y + 36
+  );
+  ctx.fillText(
+    "are produced with precision structural welding as per certified technical specifications.",
+    padding,
+    y + 52
+  );
 
   // Right side: Authorized Signature
   const signLeft = baseWidth - padding - 220;
@@ -500,12 +619,53 @@ export async function generateQuotationImage(quotation: Quotation): Promise<stri
   ctx.font = "normal 11px system-ui, -apple-system, sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(
-    "Thank you for your business!  •  Monarch Fabrication  •  Precision Metalwork Engineered to Last  •  www.monarchfabrication.in",
+    `Thank you for your business!  •  Monarch Fabrication  •  GSTIN: ${COMPANY_CONFIG.contact.gstin}  •  ${COMPANY_CONFIG.contact.email}`,
     baseWidth / 2,
     baseHeight - 26
   );
 
   return canvas.toDataURL("image/png", 1.0);
+}
+
+/**
+ * Downloads a quotation or bill as a high-quality PDF document file directly to the user's browser
+ */
+export async function downloadQuotationPDF(quotation: Quotation): Promise<void> {
+  const dataUrl = await generateQuotationImage(quotation);
+  if (!dataUrl) return;
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  });
+
+  const imgProps = pdf.getImageProperties(dataUrl);
+  const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
+  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  if (pdfHeight <= 297) {
+    // Fits nicely on standard A4 page
+    pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+  } else {
+    // Multi-page handling if item list is long
+    const pageHeight = 297;
+    let heightLeft = pdfHeight;
+    let position = 0;
+
+    pdf.addImage(dataUrl, "PNG", 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(dataUrl, "PNG", 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
+  }
+
+  const prefix = quotation.documentType === "bill" ? "Monarch-Fabrication-Tax-Invoice" : "Monarch-Fabrication-Quotation";
+  pdf.save(`${prefix}-${quotation.quotationNumber}.pdf`);
 }
 
 /**
@@ -515,7 +675,8 @@ export async function downloadQuotationImage(quotation: Quotation): Promise<stri
   const dataUrl = await generateQuotationImage(quotation);
   if (!dataUrl) return "";
 
-  const filename = `Monarch-Fabrication-Quotation-${quotation.quotationNumber}.png`;
+  const prefix = quotation.documentType === "bill" ? "Monarch-Fabrication-Tax-Invoice" : "Monarch-Fabrication-Quotation";
+  const filename = `${prefix}-${quotation.quotationNumber}.png`;
   const link = document.createElement("a");
   link.href = dataUrl;
   link.download = filename;
@@ -530,24 +691,30 @@ export async function downloadQuotationImage(quotation: Quotation): Promise<stri
  * Opens WhatsApp with pre-filled message and direct customer link if available
  */
 export function shareQuotationOnWhatsApp(quotation: Quotation) {
+  const isBill = quotation.documentType === "bill";
+  const docTitle = isBill ? "TAX INVOICE / BILL" : "QUOTATION ESTIMATE";
   const customerName = quotation.customerName;
   const quoteNo = quotation.quotationNumber;
   const total = formatINR(quotation.grandTotal);
   const date = formatDisplayDate(quotation.date);
 
   const textLines = [
-    `*QUOTATION FROM MONARCH FABRICATION*`,
+    `*${docTitle} FROM MONARCH FABRICATION*`,
     `----------------------------------------`,
-    `📄 *Quotation No:* ${quoteNo}`,
+    `📄 *Document No:* ${quoteNo}`,
     `📅 *Date:* ${date}`,
-    `👤 *Customer:* ${customerName}`,
+    `👤 *Customer / Buyer:* ${customerName}`,
+    quotation.customerGstin ? `🏢 *Customer GSTIN:* ${quotation.customerGstin}` : null,
+    `📍 *Site Location:* ${quotation.customerLocation || "Surat, Gujarat"}`,
+    `🏢 *Monarch GSTIN:* ${COMPANY_CONFIG.contact.gstin}`,
     `💰 *Grand Total:* ${total}`,
     `----------------------------------------`,
     `Hello ${customerName},`,
-    `Thank you for reaching out to *Monarch Fabrication*.`,
-    `We have prepared your detailed custom fabrication quotation (Estimate #${quoteNo}).`,
+    isBill
+      ? `Please find your official Tax Invoice (#${quoteNo}) from *Monarch Fabrication*.`
+      : `Thank you for choosing *Monarch Fabrication*. Please find your custom quotation (#${quoteNo}) detailed below.`,
     ``,
-    `📌 *Summary of Works:*`,
+    `📌 *Items Summary:*`,
     ...quotation.items.map(
       (item, idx) =>
         `${idx + 1}. *${item.partName}* (${item.sizeDimension || "Standard"}) - Qty: ${item.quantity} - ${formatINR(item.amount)}`
@@ -555,9 +722,10 @@ export function shareQuotationOnWhatsApp(quotation: Quotation) {
     ``,
     `💵 *Total Amount:* ${total}`,
     `----------------------------------------`,
-    `For any revisions or order confirmation, please reply here or call *+91 81530 73266*.`,
+    `For inquiries or payment updates, please reply here or call *+91 81530 73266*.`,
+    `Email: ${COMPANY_CONFIG.contact.email}`,
     `_Monarch Fabrication • "We Will Make Whatever You Think.."_`,
-  ];
+  ].filter(Boolean);
 
   const fullText = textLines.join("\n");
   const encoded = encodeURIComponent(fullText);
