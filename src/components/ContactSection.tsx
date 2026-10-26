@@ -111,32 +111,23 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ preselectedServi
                 </div>
               </a>
 
-              {/* 4. Official Email Addresses */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                <a
-                  href={`mailto:${contact.email}`}
-                  className="p-3 rounded-xl bg-[#070c18] hover:bg-sky-950/30 border border-slate-800/80 hover:border-sky-500/40 transition-colors group"
-                >
-                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">
-                    General Enquiries
+              {/* 4. Official Email Address */}
+              <a
+                href={`mailto:${contact.email}`}
+                className="flex items-center gap-3.5 p-3 rounded-xl bg-[#070c18] hover:bg-sky-950/30 border border-slate-800/80 hover:border-sky-500/40 transition-colors group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 transition-transform">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
+                    Official Email
                   </span>
-                  <span className="text-xs font-bold text-white group-hover:text-sky-300 break-all">
+                  <span className="text-sm font-bold text-white group-hover:text-sky-300">
                     {contact.email}
                   </span>
-                </a>
-
-                <a
-                  href={`mailto:${contact.quoteEmail}`}
-                  className="p-3 rounded-xl bg-[#070c18] hover:bg-cyan-950/30 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-                >
-                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-semibold">
-                    Quotation Requests
-                  </span>
-                  <span className="text-xs font-bold text-white group-hover:text-cyan-300 break-all">
-                    {contact.quoteEmail}
-                  </span>
-                </a>
-              </div>
+                </div>
+              </a>
             </div>
 
             {/* Address & Hours */}
