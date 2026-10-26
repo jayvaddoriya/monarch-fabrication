@@ -21,13 +21,13 @@ export const Logo: React.FC<LogoProps> = ({
       aria-label="Monarch Fabrication - Home"
     >
       {/* Geometric 'M' Emblem Badge */}
-      <div className="relative w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-xl bg-white p-1.5 shadow-md shadow-cyan-500/15 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105 border border-white/80">
+      <div className="relative w-8 h-8 sm:w-9 sm:h-9 xl:w-9 xl:h-9 2xl:w-10 2xl:h-10 rounded-xl bg-white p-1 sm:p-1.5 shadow-md shadow-cyan-500/15 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105 border border-white/80">
         <div className="relative w-full h-full">
           <Image
             src="/images/logo-emblem.png"
             alt="Monarch Fabrication Emblem"
             fill
-            sizes="48px"
+            sizes="40px"
             className="object-contain"
             priority
           />
@@ -36,16 +36,16 @@ export const Logo: React.FC<LogoProps> = ({
 
       {/* Typography Wordmark */}
       <div className="flex flex-col text-left shrink-0">
-        <div className="flex items-center gap-1.5 leading-none">
-          <span className="font-black tracking-wider text-white text-base sm:text-lg xl:text-xl uppercase font-sans whitespace-nowrap">
+        <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
+          <span className="font-black tracking-wider text-white text-sm sm:text-base lg:text-base 2xl:text-lg uppercase font-sans whitespace-nowrap">
             MONARCH
           </span>
-          <span className="font-bold tracking-wider text-cyan-400 text-base sm:text-lg xl:text-xl uppercase font-sans whitespace-nowrap">
+          <span className="font-bold tracking-wider text-cyan-400 text-sm sm:text-base lg:text-base 2xl:text-lg uppercase font-sans whitespace-nowrap">
             FABRICATION
           </span>
         </div>
         {showTagline && (
-          <span className="hidden xl:block text-[10px] xl:text-[11px] text-cyan-300 font-medium tracking-tight mt-1 leading-none whitespace-nowrap">
+          <span className="hidden 2xl:block text-[10px] 2xl:text-[11px] text-cyan-300 font-medium tracking-tight mt-1 leading-none whitespace-nowrap">
             {COMPANY_CONFIG.tagline}
           </span>
         )}
