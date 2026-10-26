@@ -25,8 +25,20 @@ export interface ServiceItem {
 export interface GalleryProject {
   id: string;
   title: string;
-  category: "railings" | "staircases" | "gates-grills" | "aluminium" | "custom-safety";
+  category:
+    | "ss-railings"
+    | "steel-staircases"
+    | "ms-gates-grills"
+    | "ms-windows-grills"
+    | "ms-structural"
+    | "aluminium-windows"
+    | "aluminium-doors-partitions"
+    | "ac-cages"
+    | "mosquito-mesh"
+    | "invisible-grills"
+    | "custom-steel";
   categoryLabel: string;
+  materialType: string;
   imageUrl: string;
   description: string;
   locationTag: string;
@@ -547,97 +559,391 @@ export const SERVICES_DATA: ServiceItem[] = [
   },
 ];
 
-// GALLERY PROJECTS - Real, relevant, high-resolution fabrication imagery
+// GALLERY PROJECTS - Comprehensive portfolio across ALL fabrication categories (33 entries)
 export const GALLERY_PROJECTS: GalleryProject[] = [
+  // 1. Stainless Steel Railings (3 projects)
   {
-    id: "p1",
+    id: "gal-ss-1",
     title: "Modern SS & Glass Balcony Balustrade",
-    category: "railings",
-    categoryLabel: "Stainless Steel Railings",
+    category: "ss-railings",
+    categoryLabel: "SS Railings",
+    materialType: "Stainless Steel (SS 304)",
     imageUrl:
       "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-    description: "Sleek stainless steel handrail system with 12mm toughened glass infill on a luxury residential terrace.",
+    description: "Sleek stainless steel top-rail and post system with 12mm toughened clear glass on an expansive villa terrace.",
     locationTag: "Residential Villa Project",
   },
   {
-    id: "p2",
-    title: "Architectural Mild Steel Central Stringer Staircase",
-    category: "staircases",
+    id: "gal-ss-2",
+    title: "Luxury Terrace Stainless Steel Safety Railing",
+    category: "ss-railings",
+    categoryLabel: "SS Railings",
+    materialType: "Stainless Steel (SS 316)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+    description: "High-grade SS 316 weather-resistant balustrade with brushed satin finish overlooking coastal garden views.",
+    locationTag: "Penthouse Balcony",
+  },
+  {
+    id: "gal-ss-3",
+    title: "Contemporary Staircase SS Handrail System",
+    category: "ss-railings",
+    categoryLabel: "SS Railings",
+    materialType: "Stainless Steel (SS 304)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=1200&q=80",
+    description: "Ergonomic continuous stainless steel round pipe handrail with glass side-bracket fittings.",
+    locationTag: "Commercial Atrium",
+  },
+
+  // 2. Steel Staircases & MS Stairs (3 projects)
+  {
+    id: "gal-stair-1",
+    title: "Architectural MS Mono-Stringer Staircase",
+    category: "steel-staircases",
     categoryLabel: "Steel Staircases",
+    materialType: "Mild Steel (MS)",
     imageUrl:
       "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=1200&q=80",
-    description: "Custom-fabricated mono-stringer mild steel staircase with matte black industrial powder coating.",
+    description: "Custom-fabricated heavy central spine mild steel staircase with matte charcoal industrial powder coating.",
     locationTag: "Duplex Residence",
   },
   {
-    id: "p3",
-    title: "Contemporary Geometric MS Entrance Gate",
-    category: "gates-grills",
+    id: "gal-stair-2",
+    title: "Industrial Plant Access & Fire Escape Stairs",
+    category: "steel-staircases",
+    categoryLabel: "Steel Staircases",
+    materialType: "Mild Steel (MS / Galvanized)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1533779283484-8da497b172a6?auto=format&fit=crop&w=1200&q=80",
+    description: "Rigid industrial staircase with anti-slip checker plate steps and reinforced handrail framework.",
+    locationTag: "Manufacturing Plant",
+  },
+  {
+    id: "gal-stair-3",
+    title: "Modern Floating Steel Steps Structure",
+    category: "steel-staircases",
+    categoryLabel: "Steel Staircases",
+    materialType: "Mild Steel (MS)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80",
+    description: "Concealed wall-anchored steel cantilever brackets supporting solid architectural treads.",
+    locationTag: "Architectural Villa",
+  },
+
+  // 3. MS Gates & Grills (3 projects)
+  {
+    id: "gal-gate-1",
+    title: "Contemporary Geometric MS Entrance Sliding Gate",
+    category: "ms-gates-grills",
     categoryLabel: "Gates & Grills",
+    materialType: "Mild Steel (MS)",
     imageUrl:
       "https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?auto=format&fit=crop&w=1200&q=80",
-    description: "Heavy-duty sliding main gate fabricated with hollow steel sections and laser-cut metal paneling.",
+    description: "Heavy-duty automated sliding main gate fabricated with hollow steel sections and laser-cut metal paneling.",
     locationTag: "Commercial Gated Compound",
   },
   {
-    id: "p4",
-    title: "Slimline Anthracite Aluminium Sliding Windows",
-    category: "aluminium",
-    categoryLabel: "Aluminium Systems",
+    id: "gal-gate-2",
+    title: "Heavy-Duty Motorized Main Gate & Grillwork",
+    category: "ms-gates-grills",
+    categoryLabel: "Gates & Grills",
+    materialType: "Mild Steel (MS)",
     imageUrl:
-      "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
-    description: "Floor-to-ceiling 3-track aluminium sliding window system with acoustic double glazing.",
-    locationTag: "Penthouse Apartment",
+      "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?auto=format&fit=crop&w=1200&q=80",
+    description: "Dual-leaf swing gate with integrated ball-bearing pivots and anti-corrosion primer topcoat.",
+    locationTag: "Bungalow Entrance",
   },
   {
-    id: "p5",
-    title: "Invisible Safety Wire Grill System",
-    category: "custom-safety",
-    categoryLabel: "Safety Grills",
+    id: "gal-gate-3",
+    title: "Decorative Perimeter Security Gate & Boundary Grills",
+    category: "ms-gates-grills",
+    categoryLabel: "Gates & Grills",
+    materialType: "Mild Steel (MS)",
     imageUrl:
-      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
-    description: "High-tensile SS 316 invisible safety grill for 18th floor balcony fall protection with zero view loss.",
-    locationTag: "High-Rise Residential",
+      "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80",
+    description: "Architectural boundary wall security grill panels combining privacy louvers with vertical square bars.",
+    locationTag: "Private Estate",
+  },
+
+  // 4. MS Windows & Window Grills (3 projects)
+  {
+    id: "gal-win-1",
+    title: "Modern Grid MS Security Window Grill",
+    category: "ms-windows-grills",
+    categoryLabel: "Window Grills",
+    materialType: "Mild Steel (MS)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1509644851169-2acc08aa25b5?auto=format&fit=crop&w=1200&q=80",
+    description: "Minimalist industrial grid window grill fabricated from solid square bars with concealed masonry anchoring.",
+    locationTag: "Modern Apartment Complex",
   },
   {
-    id: "p6",
+    id: "gal-win-2",
+    title: "Burglar-Proof Made-to-Measure Metal Window Frames",
+    category: "ms-windows-grills",
+    categoryLabel: "Window Grills",
+    materialType: "Mild Steel (MS)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?auto=format&fit=crop&w=1200&q=80",
+    description: "Durable metal casement window frames built for high wind tolerance and maximum security.",
+    locationTag: "Commercial Tower",
+  },
+  {
+    id: "gal-win-3",
+    title: "Custom Geometric Lattice Window Protective Grill",
+    category: "ms-windows-grills",
+    categoryLabel: "Window Grills",
+    materialType: "Mild Steel (MS)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80",
+    description: "Diamond pattern decorative safety grill with electrostatic matte black powder coat finish.",
+    locationTag: "Residential Residence",
+  },
+
+  // 5. MS & Heavy Structural Fabrication (3 projects)
+  {
+    id: "gal-struct-1",
     title: "Heavy-Duty Structural Steel Mezzanine Frame",
-    category: "staircases",
+    category: "ms-structural",
     categoryLabel: "MS Structural",
+    materialType: "Mild Steel (MS I-Beam)",
     imageUrl:
       "https://images.unsplash.com/photo-1587293852726-70cdb56c2866?auto=format&fit=crop&w=1200&q=80",
-    description: "Engineered mild steel I-beam framework and supporting columns for factory mezzanine floor.",
+    description: "Engineered mild steel I-beam framework, supporting columns, and load-bearing joints for warehouse mezzanine.",
     locationTag: "Industrial Warehouse",
   },
   {
-    id: "p7",
-    title: "Aluminium Glass Interior Partitions & Doors",
-    category: "aluminium",
+    id: "gal-struct-2",
+    title: "Heavy Channel & Beam Warehouse Truss Framework",
+    category: "ms-structural",
+    categoryLabel: "MS Structural",
+    materialType: "Mild Steel (ISMC Sections)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80",
+    description: "High-penetration MIG welded steel truss structures engineered for wide clear spans without intermediate pillars.",
+    locationTag: "Logistics Hub",
+  },
+  {
+    id: "gal-struct-3",
+    title: "Custom Industrial Machinery Mounting Structure",
+    category: "ms-structural",
+    categoryLabel: "MS Structural",
+    materialType: "Mild Steel (MS Plate & Tubes)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1517581177682-a085bb7ffb15?auto=format&fit=crop&w=1200&q=80",
+    description: "Vibration-dampened heavy steel equipment foundation frame designed to certified engineering tolerances.",
+    locationTag: "Factory Processing Floor",
+  },
+
+  // 6. Aluminium Windows (3 projects)
+  {
+    id: "gal-al-win-1",
+    title: "Slimline Anthracite Aluminium Sliding Windows",
+    category: "aluminium-windows",
+    categoryLabel: "Aluminium Windows",
+    materialType: "Architectural Aluminium Alloy",
+    imageUrl:
+      "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80",
+    description: "Floor-to-ceiling 3-track aluminium sliding window system with acoustic double glazing and silent nylon rollers.",
+    locationTag: "Penthouse Apartment",
+  },
+  {
+    id: "gal-al-win-2",
+    title: "Black Powder-Coated 3-Track Casement Windows",
+    category: "aluminium-windows",
+    categoryLabel: "Aluminium Windows",
+    materialType: "Architectural Aluminium Alloy",
+    imageUrl:
+      "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80",
+    description: "Modern casement window profiles with multi-point locking mechanisms and EPDM weather-seal gaskets.",
+    locationTag: "Modern Villa Residence",
+  },
+  {
+    id: "gal-al-win-3",
+    title: "Panoramic Thermal-Break Aluminium Window System",
+    category: "aluminium-windows",
+    categoryLabel: "Aluminium Windows",
+    materialType: "Architectural Aluminium Alloy",
+    imageUrl:
+      "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
+    description: "Wide panoramic architectural windows engineered for thermal insulation and unobstructed outdoor light.",
+    locationTag: "Corporate Office Lounge",
+  },
+
+  // 7. Aluminium Doors & Partitions (3 projects)
+  {
+    id: "gal-al-part-1",
+    title: "Floor-to-Ceiling Aluminium Glass Interior Partitions",
+    category: "aluminium-doors-partitions",
     categoryLabel: "Aluminium Partitions",
+    materialType: "Extruded Aluminium & Toughened Glass",
     imageUrl:
       "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80",
-    description: "Architectural slim-profile black aluminium frames dividing executive suites and meeting rooms.",
+    description: "Architectural slim-profile black aluminium frames dividing executive suites and conference rooms.",
     locationTag: "Corporate Headquarters",
   },
   {
-    id: "p8",
-    title: "Architectural Laser-Cut Custom Steel Screen",
-    category: "custom-safety",
+    id: "gal-al-part-2",
+    title: "Slimline Aluminium Office Cabin Dividers & Doors",
+    category: "aluminium-doors-partitions",
+    categoryLabel: "Aluminium Partitions",
+    materialType: "Extruded Aluminium & Acoustic Glass",
+    imageUrl:
+      "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=80",
+    description: "Modular aluminium partition system with integrated glass sliding doors and magnetic door latches.",
+    locationTag: "Tech Park Workspaces",
+  },
+  {
+    id: "gal-al-part-3",
+    title: "Modern Acoustic Glass Sliding Partitions",
+    category: "aluminium-doors-partitions",
+    categoryLabel: "Aluminium Partitions",
+    materialType: "Aluminium & Fluted Glass",
+    imageUrl:
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80",
+    description: "Contemporary interior room divider with decorative frosted glass panels on top-hung tracks.",
+    locationTag: "Luxury Residential Interior",
+  },
+
+  // 8. AC Outdoor Unit Cages & Boxes (3 projects)
+  {
+    id: "gal-ac-1",
+    title: "Protective Anti-Theft AC Condenser Outdoor Cage",
+    category: "ac-cages",
+    categoryLabel: "AC Cages",
+    materialType: "Mild Steel (All-Weather Powder Coated)",
+    imageUrl:
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80",
+    description: "Anti-theft weather-shielded enclosure with lockable service door and optimal airflow clearance.",
+    locationTag: "Commercial Facade",
+  },
+  {
+    id: "gal-ac-2",
+    title: "Weather-Proof Louvered Metal HVAC Enclosure",
+    category: "ac-cages",
+    categoryLabel: "AC Cages",
+    materialType: "Galvanized Mild Steel",
+    imageUrl:
+      "https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=1200&q=80",
+    description: "Architectural louver box shielding outdoor compressor units from torrential rain and direct sun.",
+    locationTag: "Multi-Unit Apartment",
+  },
+  {
+    id: "gal-ac-3",
+    title: "Rooftop VRF / Outdoor Compressor Security Caging",
+    category: "ac-cages",
+    categoryLabel: "AC Cages",
+    materialType: "Heavy Mild Steel Section",
+    imageUrl:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=80",
+    description: "Heavy-duty wire mesh cage safeguarding industrial rooftop air conditioning chillers against unauthorized access.",
+    locationTag: "Hospitality Facility",
+  },
+
+  // 9. Mosquito Mesh & Machher Jali (3 projects)
+  {
+    id: "gal-mesh-1",
+    title: "Pleated Sliding Mosquito Mesh Door System",
+    category: "mosquito-mesh",
+    categoryLabel: "Mosquito Mesh",
+    materialType: "SS 304 Mesh & Aluminium Extrusion",
+    imageUrl:
+      "https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=1200&q=80",
+    description: "Retractable pleated insect screen door mounted onto existing balcony sliding French doors with smooth glide track.",
+    locationTag: "Balcony Living Room",
+  },
+  {
+    id: "gal-mesh-2",
+    title: "Removable Magnetic SS 304 Insect Wire Mesh Frame",
+    category: "mosquito-mesh",
+    categoryLabel: "Mosquito Mesh",
+    materialType: "Stainless Steel 304 Wire Mesh",
+    imageUrl:
+      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80",
+    description: "Durable rodent-proof stainless steel 304 mesh frame designed for easy detachment and seasonal washing.",
+    locationTag: "Bedroom Window Openings",
+  },
+  {
+    id: "gal-mesh-3",
+    title: "Color-Matched Aluminium Framed Mosquito Screens",
+    category: "mosquito-mesh",
+    categoryLabel: "Mosquito Mesh",
+    materialType: "Fibreglass / SS Mesh & Aluminium",
+    imageUrl:
+      "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1200&q=80",
+    description: "Slimline charcoal powder-coated frames holding high-visibility insect mesh for complete insect protection.",
+    locationTag: "Kitchen & Utility Windows",
+  },
+
+  // 10. Invisible Safety Grills (3 projects)
+  {
+    id: "gal-inv-1",
+    title: "High-Tensile SS 316 Balcony Invisible Safety Grill",
+    category: "invisible-grills",
+    categoryLabel: "Invisible Grills",
+    materialType: "SS 316 Marine Grade Wire Cable",
+    imageUrl:
+      "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+    description: "High-tensile SS 316 invisible safety grill for 18th floor balcony fall protection with zero loss of skyline view.",
+    locationTag: "High-Rise Apartment",
+  },
+  {
+    id: "gal-inv-2",
+    title: "High-Rise Terrace Panoramic Invisible Fall Barrier",
+    category: "invisible-grills",
+    categoryLabel: "Invisible Grills",
+    materialType: "SS 316 Transparent Nylon Coated",
+    imageUrl:
+      "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
+    description: "Tensioned stainless steel vertical cables anchored into structural concrete with heavy-duty aluminium profile tracks.",
+    locationTag: "Penthouse Veranda",
+  },
+  {
+    id: "gal-inv-3",
+    title: "Unobstructed Skyline View Window Safety Wire System",
+    category: "invisible-grills",
+    categoryLabel: "Invisible Grills",
+    materialType: "SS 316 Wire System",
+    imageUrl:
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    description: "Fire-evacuation compliant child safety grill system preserving 98% natural light and outdoor panorama.",
+    locationTag: "Master Bedroom Bay Windows",
+  },
+
+  // 11. Custom Steel Fabrication (3 projects)
+  {
+    id: "gal-cust-1",
+    title: "CNC Laser-Cut Architectural Steel Decorative Screen",
+    category: "custom-steel",
     categoryLabel: "Custom Metalwork",
+    materialType: "Custom Mild Steel (Laser Cut)",
     imageUrl:
       "https://images.unsplash.com/photo-1574359411659-15573a27fd0c?auto=format&fit=crop&w=1200&q=80",
     description: "Custom CNC laser-cut MS decorative partition screen with bronze textured powder coat.",
     locationTag: "Hospitality Lounge",
   },
   {
-    id: "p9",
-    title: "Protective AC Outdoor Enclosure & Louver Box",
-    category: "custom-safety",
-    categoryLabel: "AC Cages",
+    id: "gal-cust-2",
+    title: "Precision Custom Fabricated Metal Components",
+    category: "custom-steel",
+    categoryLabel: "Custom Metalwork",
+    materialType: "High-Grade Structural Steel",
     imageUrl:
-      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80",
-    description: "Anti-theft weather-shielded louvered cage protecting outdoor VRF condensers with free airflow.",
-    locationTag: "Commercial Facade",
+      "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80",
+    description: "Bespoke engineered brackets, machine guards, and specialized metal fittings manufactured to CAD drawings.",
+    locationTag: "Engineering Facility",
+  },
+  {
+    id: "gal-cust-3",
+    title: "Bespoke Industrial Steel Brackets & Framework",
+    category: "custom-steel",
+    categoryLabel: "Custom Metalwork",
+    materialType: "Mild Steel & Stainless Steel",
+    imageUrl:
+      "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80",
+    description: "Precision CNC milled and TIG welded custom architectural hardware tailored to customer specifications.",
+    locationTag: "Custom Architectural Site",
   },
 ];
 
