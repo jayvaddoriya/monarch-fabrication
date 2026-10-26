@@ -279,11 +279,11 @@ export default function AdminPage() {
                   setSelectedQuote(null);
                   setView("create");
                 }}
-                className="px-2.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-bold uppercase tracking-wider text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer whitespace-nowrap"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-500 hover:from-cyan-300 hover:to-sky-400 text-slate-950 font-bold uppercase tracking-wider text-xs shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
               >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <Plus className="hidden sm:inline-block w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">Create Quote / Bill</span>
-                <span className="sm:hidden text-[11px]">+ New</span>
+                <span className="sm:hidden text-xs font-black">+ NEW</span>
               </button>
             )}
 
