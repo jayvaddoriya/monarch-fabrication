@@ -279,92 +279,93 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Bar Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div className="flex items-center gap-3">
+      {/* Top Bar Navigation (Fully responsive across all screen widths) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={onCancel}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer shrink-0"
             title="Back to List"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2">
-              <span>
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2 flex-wrap">
+              <span className="truncate">
                 {isEditing
                   ? `Edit ${documentType === "bill" ? "Tax Invoice" : "Quotation"}`
                   : `Create New ${documentType === "bill" ? "Tax Invoice / Bill" : "Quotation"}`}
               </span>
-              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+              <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30 shrink-0">
                 {quotationNumber}
               </span>
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-0.5 hidden sm:block">
               Draft official fabrication quotation or GST Tax Invoice with instant PDF & PNG downloads.
             </p>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end shrink-0">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => handleSubmit(false)}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Save</span>
           </button>
           <button
             type="button"
             onClick={() => handleSubmit(true)}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <FileCheck className="w-4 h-4" />
-            <span>Save & Generate PDF / Image</span>
+            <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Save &amp; Generate PDF / Image</span>
+            <span className="sm:hidden">Generate</span>
           </button>
         </div>
       </div>
 
       {/* Document Type Switcher Tabs */}
-      <div className="p-3 rounded-2xl bg-[#0b1222] border border-cyan-500/30 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider mr-2">
-            Select Document Mode:
+      <div className="p-3 rounded-2xl bg-[#0b1222] border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold text-slate-300 uppercase tracking-wider mr-1 sm:mr-2">
+            Mode:
           </span>
           <button
             type="button"
             onClick={() => handleDocumentTypeChange("quotation")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
               documentType === "quotation"
                 ? "bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-lg shadow-cyan-500/25"
                 : "bg-[#070c18] border border-slate-800 text-slate-400 hover:text-white"
             }`}
           >
-            <FileText className="w-4 h-4" />
-            <span>Quotation / Estimate</span>
+            <FileText className="w-3.5 h-3.5" />
+            <span>Quotation</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleDocumentTypeChange("bill")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+            className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
               documentType === "bill"
                 ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-lg shadow-emerald-500/25"
                 : "bg-[#070c18] border border-slate-800 text-slate-400 hover:text-white"
             }`}
           >
-            <Receipt className="w-4 h-4" />
-            <span>GST Tax Invoice / Bill</span>
+            <Receipt className="w-3.5 h-3.5" />
+            <span>GST Tax Invoice</span>
           </button>
         </div>
 
@@ -622,9 +623,9 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <div className="grid grid-cols-2 sm:grid-cols-6 md:grid-cols-12 gap-2.5 sm:gap-3 items-end">
                 {/* Part Name */}
-                <div className="md:col-span-5">
+                <div className="col-span-2 sm:col-span-6 md:col-span-5">
                   <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                     Part / Product Description <span className="text-cyan-400">*</span>
                   </label>
@@ -639,7 +640,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
                 </div>
 
                 {/* Size / Dimension */}
-                <div className="md:col-span-3">
+                <div className="col-span-2 sm:col-span-6 md:col-span-3">
                   <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                     Size / Dimensions / Specs
                   </label>
@@ -654,7 +655,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
 
                 {/* HSN Code (If Bill) */}
                 {documentType === "bill" && (
-                  <div className="md:col-span-1">
+                  <div className="col-span-1 sm:col-span-2 md:col-span-1">
                     <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                       HSN
                     </label>
@@ -668,7 +669,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
                 )}
 
                 {/* Quantity */}
-                <div className={documentType === "bill" ? "md:col-span-1" : "md:col-span-1"}>
+                <div className={documentType === "bill" ? "col-span-1 sm:col-span-1 md:col-span-1" : "col-span-1 sm:col-span-1 md:col-span-1"}>
                   <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                     Qty
                   </label>
@@ -682,7 +683,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
                 </div>
 
                 {/* Rate per Unit */}
-                <div className="md:col-span-1">
+                <div className="col-span-1 sm:col-span-2 md:col-span-1">
                   <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                     Rate (₹)
                   </label>
@@ -696,7 +697,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
                 </div>
 
                 {/* Calculated Item Total */}
-                <div className={documentType === "bill" ? "md:col-span-1" : "md:col-span-2"}>
+                <div className={documentType === "bill" ? "col-span-1 sm:col-span-2 md:col-span-1" : "col-span-1 sm:col-span-2 md:col-span-2"}>
                   <label className="block text-[11px] font-semibold text-slate-400 mb-1 uppercase tracking-wider">
                     Amount (₹)
                   </label>
@@ -902,37 +903,40 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({
       </div>
 
       {/* Bottom Floating Submit Strip */}
-      <div className="sticky bottom-4 z-20 p-4 rounded-2xl bg-[#0b1222]/95 backdrop-blur-md border border-cyan-500/30 shadow-2xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="sticky bottom-4 z-20 p-3 sm:p-4 rounded-2xl bg-[#0b1222]/95 backdrop-blur-md border border-cyan-500/30 shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center justify-between sm:justify-start gap-2">
           <span className="text-xs text-slate-400">
-            Total {documentType === "bill" ? "Invoice" : "Quotation"} Value:{" "}
-            <span className="text-white font-mono font-bold text-sm">{formatINR(grandTotal)}</span>
+            Total {documentType === "bill" ? "Invoice" : "Quotation"}:
+          </span>
+          <span className="text-white font-mono font-black text-sm sm:text-base text-cyan-300">
+            {formatINR(grandTotal)}
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={() => handleSubmit(false)}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Save className="w-4 h-4" />
+            <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>Save</span>
           </button>
           <button
             type="button"
             onClick={() => handleSubmit(true)}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-1.5 cursor-pointer flex-1 sm:flex-initial justify-center"
           >
-            <FileCheck className="w-4 h-4" />
-            <span>Save & Generate PDF / Image</span>
+            <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="hidden sm:inline">Save &amp; Generate PDF / Image</span>
+            <span className="sm:hidden">Generate PDF / PNG</span>
           </button>
         </div>
       </div>

@@ -109,11 +109,11 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             </h3>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={handlePrint}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
               title="Print"
             >
               <Printer className="w-4 h-4" />
@@ -122,53 +122,53 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             <button
               type="button"
               onClick={() => onEdit(quotation)}
-              className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-cyan-300 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Edit className="w-3.5 h-3.5" />
               <span>Edit</span>
             </button>
 
-            {/* Primary Action: Download PDF */}
-            <button
-              type="button"
-              onClick={handleDownloadPDF}
-              disabled={downloading}
-              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-cyan-500/25 disabled:opacity-50"
-            >
-              {downloading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <FileCheck className="w-3.5 h-3.5" />
-              )}
-              <span>Download PDF</span>
-            </button>
+            {/* Quick Actions (Visible on sm+ in top bar, always visible in bottom bar) */}
+            <div className="hidden sm:flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                disabled={downloading}
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-cyan-500/25 disabled:opacity-50"
+              >
+                {downloading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <FileCheck className="w-3.5 h-3.5" />
+                )}
+                <span>Download PDF</span>
+              </button>
 
-            {/* Download PNG */}
-            <button
-              type="button"
-              onClick={handleDownloadPNG}
-              disabled={downloading}
-              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>PNG</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleDownloadPNG}
+                disabled={downloading}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>PNG</span>
+              </button>
 
-            {/* WhatsApp Share */}
-            <button
-              type="button"
-              onClick={handleWhatsAppShare}
-              disabled={downloading}
-              className="px-3.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#25D366]/20 disabled:opacity-50"
-            >
-              <MessageSquare className="w-3.5 h-3.5 fill-slate-950" />
-              <span>WhatsApp</span>
-            </button>
+              <button
+                type="button"
+                onClick={handleWhatsAppShare}
+                disabled={downloading}
+                className="px-3.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#25D366]/20 disabled:opacity-50"
+              >
+                <MessageSquare className="w-3.5 h-3.5 fill-slate-950" />
+                <span>WhatsApp</span>
+              </button>
+            </div>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer ml-1"
+              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer ml-1"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -276,8 +276,8 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
             </div>
 
             {/* Items Table */}
-            <div className="border border-slate-300 rounded-lg overflow-hidden">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="border border-slate-300 rounded-lg overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse min-w-[560px]">
                 <thead>
                   <tr className="bg-slate-950 text-white uppercase text-[11px] font-bold">
                     <th className="py-2.5 px-3 text-center w-12">#</th>
@@ -432,30 +432,30 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
         </div>
 
         {/* Modal Bottom Footer Actions */}
-        <div className="p-4 bg-[#070c18] border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <span className="text-xs text-slate-400">
+        <div className="p-3 sm:p-4 bg-[#070c18] border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+          <span className="text-xs text-slate-400 truncate">
             Customer: <strong className="text-white">{quotation.customerName}</strong> &bull; Total:{" "}
             <strong className="text-cyan-400 font-mono">{formatINR(quotation.grandTotal)}</strong>
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleDownloadPDF}
               disabled={downloading}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/25 disabled:opacity-50"
+              className="py-2 px-2 sm:px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-lg shadow-cyan-500/25 disabled:opacity-50 text-center"
             >
-              <FileCheck className="w-4 h-4" />
-              <span>Download PDF</span>
+              <FileCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span>PDF</span>
             </button>
 
             <button
               type="button"
               onClick={handleDownloadPNG}
               disabled={downloading}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50"
+              className="py-2 px-2 sm:px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer border border-slate-700 disabled:opacity-50 text-center"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>PNG</span>
             </button>
 
@@ -463,10 +463,10 @@ export const QuotationPreviewModal: React.FC<QuotationPreviewModalProps> = ({
               type="button"
               onClick={handleWhatsAppShare}
               disabled={downloading}
-              className="px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-lg shadow-[#25D366]/20 disabled:opacity-50"
+              className="py-2 px-2 sm:px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-slate-950 text-[11px] sm:text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer shadow-lg shadow-[#25D366]/20 disabled:opacity-50 text-center"
             >
-              <MessageSquare className="w-4 h-4 fill-slate-950" />
-              <span>Share on WhatsApp</span>
+              <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-slate-950 shrink-0" />
+              <span>WhatsApp</span>
             </button>
           </div>
         </div>
