@@ -55,61 +55,44 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ preselectedServi
                 <span className="text-[10px] text-cyan-400 font-mono">Monarch Fabrication</span>
               </h3>
 
-              {/* 1. Main Office Phone */}
-              <a
-                href={`tel:${contact.phoneTel}`}
-                className="flex items-center gap-3.5 p-3 rounded-xl bg-[#070c18] hover:bg-cyan-950/30 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Phone className="w-5 h-5" />
+              {/* Single Contact Number & WhatsApp Box */}
+              <div className="p-4 rounded-xl bg-[#070c18] border border-slate-800/90 hover:border-cyan-500/40 transition-colors">
+                <div className="flex items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-cyan-500/15 flex items-center justify-center text-cyan-400 shrink-0">
+                      <Phone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
+                        Direct Contact & WhatsApp
+                      </span>
+                      <span className="text-base font-bold text-white tracking-tight">
+                        {contact.phoneDisplay}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
-                    Main Office & Customer Care
-                  </span>
-                  <span className="text-sm font-bold text-white group-hover:text-cyan-300">
-                    {contact.phoneDisplay}
-                  </span>
-                </div>
-              </a>
 
-              {/* 2. Dedicated Quotation Hotline */}
-              <a
-                href={`tel:${contact.quotePhoneTel}`}
-                className="flex items-center gap-3.5 p-3 rounded-xl bg-[#070c18] hover:bg-cyan-950/30 border border-slate-800/80 hover:border-cyan-500/40 transition-colors group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-sky-500/15 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-110 transition-transform">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
-                    Quotation & Drawing Estimation Hotline
-                  </span>
-                  <span className="text-sm font-bold text-white group-hover:text-sky-300">
-                    {contact.quotePhoneDisplay}
-                  </span>
-                </div>
-              </a>
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                  <a
+                    href={`tel:${contact.phoneTel}`}
+                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Call Now</span>
+                  </a>
 
-              {/* 3. Official WhatsApp */}
-              <a
-                href={whatsAppUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3.5 p-3 rounded-xl bg-[#070c18] hover:bg-emerald-950/30 border border-slate-800/80 hover:border-[#25D366]/40 transition-colors group"
-              >
-                <div className="w-10 h-10 rounded-lg bg-[#25D366]/15 flex items-center justify-center text-[#25D366] shrink-0 group-hover:scale-110 transition-transform">
-                  <MessageSquare className="w-5 h-5" />
+                  <a
+                    href={whatsAppUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] border border-[#25D366]/30 text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
                 </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-semibold">
-                    Official WhatsApp (Send Photos & Sketches)
-                  </span>
-                  <span className="text-sm font-bold text-white group-hover:text-emerald-300">
-                    {contact.whatsapp}
-                  </span>
-                </div>
-              </a>
+              </div>
 
               {/* 4. Official Email Address */}
               <a
