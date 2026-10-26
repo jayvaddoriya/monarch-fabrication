@@ -156,17 +156,26 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ preselectedServi
             </div>
 
             {/* Google Maps Location Preview */}
-            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-[#0b1222] h-48 relative">
+            <div className="rounded-2xl overflow-hidden border border-slate-800 bg-[#0b1222] h-52 relative group">
               <iframe
                 src={contact.googleMapsEmbedUrl}
                 width="100%"
                 height="100%"
-                style={{ border: 0, filter: "invert(90%) hue-rotate(180deg)" }}
+                style={{ border: 0 }}
                 allowFullScreen={false}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-                title="Monarch Fabrication Workshop Location Map"
+                title="Monarch Fabrication Workshop Location Map - Shivay Compound, Surat"
               />
+              <a
+                href={contact.mapDirectionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-lg bg-[#060a14]/90 backdrop-blur-md border border-cyan-500/30 text-cyan-300 hover:text-white hover:bg-cyan-950 text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-black/60"
+              >
+                <span>Open in Google Maps</span>
+                <ExternalLink className="w-3 h-3 text-cyan-400" />
+              </a>
             </div>
           </div>
 

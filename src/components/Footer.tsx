@@ -10,6 +10,7 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { COMPANY_CONFIG, SERVICES_DATA } from "@/data/companyConfig";
@@ -228,10 +229,26 @@ export const Footer: React.FC = () => {
                 <span>{contact.email}</span>
               </a>
 
-              {/* Address */}
-              <div className="flex items-start gap-2 pt-1 border-t border-slate-800/80">
-                <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <span>{contact.address.fullAddress}</span>
+              {/* Address with Google Maps link */}
+              <div className="pt-1 border-t border-slate-800/80">
+                <a
+                  href={contact.mapDirectionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-start gap-2 hover:text-cyan-300 transition-colors group"
+                  title="Open Shivay Compound, Khadsad, Surat on Google Maps"
+                >
+                  <MapPin className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <div className="text-xs">
+                    <span className="font-medium text-white block leading-relaxed">
+                      {contact.address.fullAddress}
+                    </span>
+                    <span className="text-[11px] text-cyan-400 group-hover:underline inline-flex items-center gap-1 mt-0.5 font-semibold">
+                      <span>View Location on Google Maps</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </span>
+                  </div>
+                </a>
               </div>
 
               {/* Hours */}

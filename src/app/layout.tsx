@@ -97,6 +97,12 @@ export default function RootLayout({
       postalCode: COMPANY_CONFIG.contact.address.postalCode,
       addressCountry: COMPANY_CONFIG.contact.address.country,
     },
+    hasMap: COMPANY_CONFIG.contact.mapDirectionsUrl,
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 21.2237915,
+      longitude: 72.9231988,
+    },
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",

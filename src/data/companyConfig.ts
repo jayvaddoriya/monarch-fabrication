@@ -88,22 +88,21 @@ export const COMPANY_CONFIG = {
     quoteEmail: "quotation@monarchfabrication.com",
 
     address: {
-      street: "Industrial Area, Metalwork Fabrication Hub",
-      area: "Near GIDC / Industrial Zone",
-      city: "Gujarat",
+      street: "Shivay Compound, Sardar Chowk",
+      area: "Khadsad",
+      city: "Surat",
       state: "Gujarat",
-      postalCode: "380001",
+      postalCode: "395006",
       country: "India",
-      fullAddress:
-        "Monarch Fabrication Workshop, Industrial Area, Gujarat - India",
+      fullAddress: "Shivay compound, sardar chowk, khadsad, surat",
     },
     openingHours: {
       weekday: "Monday - Saturday: 9:00 AM - 8:00 PM",
       weekend: "Sunday: By Prior Appointment",
     },
     googleMapsEmbedUrl:
-      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d115132.86107234917!2d85.0442998!3d25.6081756!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39ed58dce6732867%3A0x4059f39a1ac82f23!2sIndustrial%20Area!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
-    mapDirectionsUrl: "https://maps.google.com/?q=Monarch+Fabrication",
+      "https://maps.google.com/maps?q=21.2237915,72.9231988&hl=en&z=17&output=embed",
+    mapDirectionsUrl: "https://www.google.com/maps?q=21.2237915,72.9231988&z=17&hl=en",
   },
 
   // 3 Owners & Leadership Profiles (Verified details)
