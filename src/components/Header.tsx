@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "About Us", shortLabel: "About", href: "#about" },
   { label: "Services", href: "#services" },
-  { label: "Our Work", shortLabel: "Gallery", href: "#gallery" },
+  { label: "Our Portfolio", shortLabel: "Portfolio", href: "#portfolio" },
   { label: "Why Us", href: "#why-us" },
   { label: "Process", href: "#process" },
   { label: "Owners", href: "#owners" },
@@ -26,7 +26,7 @@ export const Header: React.FC = () => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      const sections = ["home", "about", "services", "gallery", "why-us", "process", "owners", "contact"];
+      const sections = ["home", "about", "services", "portfolio", "why-us", "process", "owners", "contact"];
       const scrollPosition = window.scrollY + 140;
 
       for (const sectionId of sections) {

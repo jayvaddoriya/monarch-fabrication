@@ -125,8 +125,8 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="#gallery" className="hover:text-cyan-400 transition-colors">
-                  Our Work
+                <a href="#portfolio" className="hover:text-cyan-400 transition-colors">
+                  Our Portfolio
                 </a>
               </li>
               <li>

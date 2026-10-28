@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { AboutUs } from "@/components/AboutUs";
 import { Services } from "@/components/Services";
-import { ProjectGallery } from "@/components/ProjectGallery";
+import { Portfolio } from "@/components/Portfolio";
 import { WhyChooseUs } from "@/components/WhyChooseUs";
 import { ProcessTimeline } from "@/components/ProcessTimeline";
 import { OwnerSection } from "@/components/OwnerSection";
@@ -38,8 +38,8 @@ export default function HomePage() {
         {/* 12 Core Services Section */}
         <Services onSelectServiceForQuote={handleSelectService} />
 
-        {/* Project Gallery & Work Showcase */}
-        <ProjectGallery onSelectProjectForQuote={handleSelectService} />
+        {/* Our Portfolio: Actual Fabrication Work & Categories */}
+        <Portfolio onSelectServiceForQuote={handleSelectService} />
 
         {/* Why Choose Us Section */}
         <WhyChooseUs />
