@@ -6,6 +6,7 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Maximize2,
   X,
   ShieldCheck,
@@ -148,53 +149,87 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
           </p>
         </div>
 
-        {/* Category Selector Tabs (Line by Line Categories) */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-cyan-400" />
-              <span>Project Categories:</span>
-            </span>
-            <span className="text-xs text-slate-500 hidden sm:inline">
-              More categories being added line by line
-            </span>
+        {/* Category Selector Dropdown (Space-Saving Select UI) */}
+        <div className="mb-8 p-3.5 sm:p-5 rounded-2xl bg-[#0b1222] border border-cyan-500/25 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 shadow-sm">
+                <Layers className="w-4 h-4" />
+              </span>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                  Select Project Category
+                </h4>
+                <p className="text-[11px] text-slate-400">
+                  Choose from 26 specialized fabrication categories
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-mono font-bold text-cyan-400 px-3 py-1 rounded-full bg-cyan-950 border border-cyan-500/30">
+                {PORTFOLIO_CATEGORIES.findIndex((c) => c.slug === activeCategorySlug) + 1} of {PORTFOLIO_CATEGORIES.length} Categories
+              </span>
+              <span className="text-[11px] text-slate-400 hidden sm:inline font-mono">
+                • 258 Real Photos
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:gap-2.5">
-            {PORTFOLIO_CATEGORIES.map((cat, idx) => {
-              const isActive = cat.slug === activeCategorySlug;
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => handleCategoryChange(cat.slug)}
-                  className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer border ${
-                    isActive
-                      ? "bg-gradient-to-r from-cyan-400 to-sky-400 text-slate-950 border-cyan-300 shadow-lg shadow-cyan-500/25"
-                      : "bg-[#0b1222] border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
-                  }`}
-                >
-                  <span>
-                    {idx + 1}. {cat.name}
-                  </span>
-                  {cat.isAvailable ? (
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                        isActive
-                          ? "bg-slate-950 text-cyan-300"
-                          : "bg-cyan-950 text-cyan-400 border border-cyan-500/30"
-                      }`}
-                    >
-                      {cat.images.length} Photos
-                    </span>
-                  ) : (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 font-normal">
-                      Next
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-2.5">
+            {/* Styled Select Dropdown */}
+            <div className="relative flex-1">
+              <select
+                value={activeCategorySlug}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="w-full appearance-none px-4 py-3 sm:py-3.5 pr-11 rounded-xl bg-[#070c18] border-2 border-slate-700 hover:border-cyan-400 focus:border-cyan-400 text-white font-bold text-xs sm:text-sm tracking-wide transition-all outline-none cursor-pointer shadow-inner"
+              >
+                {PORTFOLIO_CATEGORIES.map((cat, idx) => (
+                  <option
+                    key={cat.id}
+                    value={cat.slug}
+                    className="bg-[#0b1222] text-white py-2"
+                  >
+                    {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}. {cat.name} ({cat.images.length} Real Photos)
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-cyan-400">
+                <ChevronDown className="w-5 h-5" />
+              </div>
+            </div>
+
+            {/* Previous Category Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const currentIdx = PORTFOLIO_CATEGORIES.findIndex((c) => c.slug === activeCategorySlug);
+                const prevIdx = (currentIdx - 1 + PORTFOLIO_CATEGORIES.length) % PORTFOLIO_CATEGORIES.length;
+                handleCategoryChange(PORTFOLIO_CATEGORIES[prevIdx].slug);
+              }}
+              className="p-3 sm:px-4 sm:py-3.5 rounded-xl bg-[#070c18] border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer shrink-0"
+              title="Previous Category"
+              aria-label="Previous Category"
+            >
+              <ChevronLeft className="w-4 h-4 text-cyan-400" />
+              <span className="hidden md:inline">Prev</span>
+            </button>
+
+            {/* Next Category Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const currentIdx = PORTFOLIO_CATEGORIES.findIndex((c) => c.slug === activeCategorySlug);
+                const nextIdx = (currentIdx + 1) % PORTFOLIO_CATEGORIES.length;
+                handleCategoryChange(PORTFOLIO_CATEGORIES[nextIdx].slug);
+              }}
+              className="p-3 sm:px-4 sm:py-3.5 rounded-xl bg-[#070c18] border border-slate-700 hover:border-cyan-400 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer shrink-0"
+              title="Next Category"
+              aria-label="Next Category"
+            >
+              <span className="hidden md:inline">Next</span>
+              <ChevronRight className="w-4 h-4 text-cyan-400" />
+            </button>
           </div>
         </div>
 
@@ -238,28 +273,25 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
               {/* Slider Viewport (8 Cols) */}
               <div className="lg:col-span-7 xl:col-span-8">
                 <div
-                  className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl group select-none"
+                  className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-2xl select-none isolate"
                   onTouchStart={handleTouchStart}
                   onTouchMove={handleTouchMove}
                   onTouchEnd={handleTouchEnd}
                 >
-                  {/* Active Slide Image */}
-                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/10] bg-slate-900">
+                  {/* Active Slide Image (Clear, Bright, No Darkness Tint, Strict Bounds) */}
+                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:aspect-[16/10] bg-slate-900 overflow-hidden">
                     <Image
                       src={activeImage.image}
                       alt={activeImage.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 800px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="object-cover"
                       priority
                     />
 
-                    {/* Gradient Overlay for Readable Text */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85" />
-
                     {/* Top Controls Badge: Slide Counter & Fullscreen */}
                     <div className="absolute top-3 sm:top-4 inset-x-3 sm:inset-x-4 flex items-center justify-between z-10">
-                      <div className="px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-md">
+                      <div className="px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-white text-xs font-mono font-bold flex items-center gap-1.5 shadow-md">
                         <span className="text-cyan-400">
                           {currentSlideIndex + 1 < 10 ? `0${currentSlideIndex + 1}` : currentSlideIndex + 1}
                         </span>
@@ -273,7 +305,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                         <button
                           type="button"
                           onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                          className="p-2 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer shadow-md"
+                          className="p-2 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-slate-300 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer shadow-md"
                           title={isAutoPlaying ? "Pause Auto-play" : "Start Auto-play"}
                         >
                           {isAutoPlaying ? (
@@ -285,7 +317,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                         <button
                           type="button"
                           onClick={() => setLightboxImage(activeImage)}
-                          className="p-2 rounded-full bg-slate-950/80 backdrop-blur-md border border-white/10 text-slate-300 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer shadow-md"
+                          className="p-2 rounded-full bg-slate-950/85 backdrop-blur-md border border-white/15 text-slate-300 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer shadow-md"
                           title="Open Fullscreen Image"
                         >
                           <Maximize2 className="w-3.5 h-3.5" />
@@ -300,7 +332,7 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                         prevSlide();
                         setIsAutoPlaying(false);
                       }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/70 hover:bg-cyan-500 text-white hover:text-slate-950 border border-white/15 transition-all flex items-center justify-center cursor-pointer shadow-xl backdrop-blur-md z-10"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-cyan-500 text-white hover:text-slate-950 border border-white/15 transition-all flex items-center justify-center cursor-pointer shadow-xl backdrop-blur-md z-10"
                       aria-label="Previous Slide"
                     >
                       <ChevronLeft className="w-6 h-6" />
@@ -311,21 +343,23 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                         nextSlide();
                         setIsAutoPlaying(false);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/70 hover:bg-cyan-500 text-white hover:text-slate-950 border border-white/15 transition-all flex items-center justify-center cursor-pointer shadow-xl backdrop-blur-md z-10"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/80 hover:bg-cyan-500 text-white hover:text-slate-950 border border-white/15 transition-all flex items-center justify-center cursor-pointer shadow-xl backdrop-blur-md z-10"
                       aria-label="Next Slide"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
 
-                    {/* Bottom Caption Overlay on Image */}
-                    <div className="absolute bottom-3 sm:bottom-5 inset-x-3 sm:inset-x-5 z-10 space-y-1">
-                      <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-semibold">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span>{activeImage.location}</span>
+                    {/* Bottom Caption Pill - Clear image with compact badge */}
+                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 z-10 pointer-events-none">
+                      <div className="inline-block max-w-full p-2.5 sm:p-3 rounded-xl bg-slate-950/85 backdrop-blur-md border border-white/15 shadow-xl space-y-1 pointer-events-auto">
+                        <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-semibold">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span>{activeImage.location}</span>
+                        </div>
+                        <h4 className="text-sm sm:text-base font-bold text-white uppercase tracking-tight line-clamp-1">
+                          {activeImage.title}
+                        </h4>
                       </div>
-                      <h4 className="text-base sm:text-xl font-bold text-white uppercase tracking-tight line-clamp-2">
-                        {activeImage.title}
-                      </h4>
                     </div>
                   </div>
 
@@ -461,7 +495,9 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                       ? "Custom-engineered architectural glass systems featuring structural silicone butt-joint 90° corner glazing, toughened safety glass, and cantilevered box projections built for panoramic clarity and extreme weather resilience."
                       : activeCategory.slug === "glass-elevation"
                       ? "High-performance structural glazing curtain walls and point-fixed spider glass facades engineered with toughened laminated safety glass and stainless steel fittings to withstand severe wind pressure and seismic criteria."
-                      : "Every aluminium window & sliding section is fabricated using heavy-gauge architectural alloy sections with precision nylon bearing rollers and EPDM weather-proofing seals for smooth, silent operation."}
+                      : activeCategory.slug === "aluminium-windows"
+                      ? "Every aluminium window & sliding section is fabricated using heavy-gauge architectural alloy sections with precision nylon bearing rollers and EPDM weather-proofing seals for smooth, silent operation."
+                      : "Custom-fabricated by Monarch Fabrication in Surat using heavy-duty certified metals, precision TIG/MIG welding, and all-weather rustproof treatments for lasting architectural durability and safety."}
                   </p>
                 </div>
               </div>
@@ -488,19 +524,21 @@ export const Portfolio: React.FC<PortfolioProps> = ({ onSelectServiceForQuote })
                   <div
                     key={img.id}
                     onClick={() => setLightboxImage(img)}
-                    className="group relative rounded-xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-cyan-400/50 shadow-lg cursor-pointer transition-all aspect-[4/5]"
+                    className="group relative rounded-xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-cyan-400 shadow-lg cursor-pointer transition-all aspect-[4/5] isolate"
                   >
                     <Image
                       src={img.image}
                       alt={img.title}
                       fill
                       sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+                    {/* Subtle bottom gradient only behind text for crystal-clear image viewing */}
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent" />
 
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="p-1.5 rounded-lg bg-slate-950/80 text-cyan-400 backdrop-blur-sm">
+                      <div className="p-1.5 rounded-lg bg-slate-950/85 text-cyan-400 backdrop-blur-sm border border-white/10 shadow-md">
                         <Eye className="w-3.5 h-3.5" />
                       </div>
                     </div>
